@@ -41,6 +41,7 @@ export — all behind one role-aware console.
 |-----------|--------------|
 | XAMPP    | Apache + MySQL/MariaDB 10.4 + PHP 8 |
 | PHP      | 8.0 or newer (uses typed properties, `match`, `never` return type) |
+| PHP extensions | `pdo_mysql` (required), `mbstring` (required), `fileinfo` (recommended) |
 | Database | MariaDB 10.4 / MySQL 5.7+ (generated columns are used for seat locking) |
 | Browser  | Any modern browser |
 | Internet | Only for the OpenStreetMap tiles on the live map. Every vendor asset is served locally from `assets/vendor/`, so the rest of the app works offline. |
@@ -135,8 +136,12 @@ fleetra/
 │   ├── images/
 │   └── vendor/    bootstrap  bootstrap-icons  chartjs  fonts  leaflet  qrcode
 ├── database/      fleetra_db.sql
+├── docker/        entrypoint.sh                        (container port handling)
 ├── uploads/       profiles/  buses/
-└── logs/          fleetra.log  php-error.log         (created at runtime)
+├── logs/          fleetra.log  php-error.log         (created at runtime)
+├── .env.example   Environment template (copy to .env)
+├── Dockerfile     For Render / Koyeb / Fly / Railway
+└── DEPLOY.md      Free deployment guide
 ```
 
 Each module keeps its form markup in `_form.php` and its validation in `_logic.php`, so
@@ -230,19 +235,38 @@ implemented and is not claimed anywhere in the UI.
 
 ---
 
-## 8. Configuration notes
+## 8. Configuration and deployment
 
-Everything lives in `config/config.php`:
+Settings are read by `config/env.php`, which resolves each value from (in order) a real
+environment variable, a key in the project `.env` file, or the local XAMPP default. Nothing
+has to be edited in PHP to deploy, and an existing XAMPP install is unaffected because the
+defaults are unchanged.
 
 | Setting | Purpose |
 |---------|---------|
-| `APP_ENV` | `'local'` shows demo credentials and on-screen reset links; use `'production'` for a live install |
+| `APP_ENV` | `local` (default) shows demo credentials; set `production` on any public URL |
+| `SHOW_DEMO_CREDENTIALS` | Force the demo panel on/off regardless of `APP_ENV` |
 | `APP_TIMEZONE` | Business timezone used for all schedules and reports |
 | `APP_CURRENCY` | Currency symbol for fares, tickets and revenue |
 | `SESSION_IDLE_TIMEOUT` | Idle logout timer (default 3600 s) |
+| `APP_BASE_URL` | Override base-URL auto-detection on unusual host layouts |
+| `DB_HOST` `DB_PORT` `DB_NAME` `DB_USER` `DB_PASS` | Database credentials |
+| `DB_SSL_CA` `DB_SSL_VERIFY` | TLS settings for managed MySQL hosts that require SSL |
 
-Database credentials are isolated in `config/database.php` (`localhost`, `root`, empty password,
-`fleetra_db`) and are not repeated anywhere else in the codebase.
+Copy `.env.example` to `.env` and fill it in:
+
+```bash
+cp .env.example .env
+```
+
+Database credentials live only in `config/database.php`, pulled from the environment — they
+are not repeated anywhere else in the codebase. `.env` holds secrets, is git-ignored, and is
+blocked from the browser by the root `.htaccess`.
+
+**Deploying to a free host?** See **[DEPLOY.md](DEPLOY.md)** for a step-by-step guide
+(InfinityFree needs no credit card and takes about 15 minutes), the exact environment
+variables to set, a post-deploy hardening checklist and a troubleshooting table. A
+`Dockerfile` is included for Render/Koyeb/Fly/Railway.
 
 **Email is not configured.** On a local install, `forgot-password.php` displays the reset link
 on screen instead of sending mail, clearly labelled as a development behaviour. Wiring up SMTP

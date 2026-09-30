@@ -8,7 +8,9 @@
  * Provides a shared PDO connection plus small query helpers so modules
  * never repeat connection or fetch boilerplate.
  *
- * XAMPP defaults: host "localhost", user "root", empty password.
+ * Credentials come from the environment or a .env file. If neither is
+ * set, the local XAMPP defaults apply: host "localhost", user "root",
+ * empty password, database "fleetra_db".
  */
 
 declare(strict_types=1);
@@ -25,15 +27,69 @@ if (PHP_SAPI !== 'cli'
 require_once __DIR__ . '/config.php';
 
 /* ------------------------------------------------------------------
- | Connection credentials (local XAMPP defaults)
+ | Connection credentials
+ |
+ | Read from the environment or a .env file (see config/env.php). When
+ | neither is provided the local XAMPP defaults below are used, so an
+ | existing install keeps working without any change.
+ |
+ |   DB_HOST  DB_PORT  DB_NAME  DB_USER  DB_PASS  DB_CHARSET
  ------------------------------------------------------------------ */
 
-define('DB_HOST', 'localhost');
-define('DB_PORT', 3306);
-define('DB_NAME', 'fleetra_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_CHARSET', 'utf8mb4');
+define('DB_HOST', (string) fleetra_env('DB_HOST', 'localhost'));
+define('DB_PORT', fleetra_env_int('DB_PORT', 3306));
+define('DB_NAME', (string) fleetra_env('DB_NAME', 'fleetra_db'));
+define('DB_USER', (string) fleetra_env('DB_USER', 'root'));
+define('DB_PASS', (string) fleetra_env('DB_PASS', ''));
+define('DB_CHARSET', (string) fleetra_env('DB_CHARSET', 'utf8mb4'));
+
+/** The PDO DSN built from the configured credentials. */
+function fleetra_dsn(): string
+{
+    return sprintf(
+        'mysql:host=%s;port=%d;dbname=%s;charset=%s',
+        DB_HOST,
+        DB_PORT,
+        DB_NAME,
+        DB_CHARSET
+    );
+}
+
+/**
+ * PDO connection options shared by the live connection and the health probe.
+ *
+ * Managed MySQL providers (Aiven, PlanetScale, some Clever Cloud plans)
+ * require a TLS connection. Set DB_SSL_CA to the CA bundle they give you —
+ * for example:  DB_SSL_CA=/var/www/html/ca.pem
+ * Set DB_SSL_VERIFY=false only when the provider uses a certificate you
+ * cannot verify (never do this against an untrusted host).
+ *
+ * @param array<int, mixed> $overrides
+ * @return array<int, mixed>
+ */
+function fleetra_db_options(array $overrides = []): array
+{
+    $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+        PDO::ATTR_STRINGIFY_FETCHES  => false,
+        PDO::ATTR_TIMEOUT            => 5,
+    ];
+
+    $sslCa = fleetra_env('DB_SSL_CA');
+
+    if ($sslCa !== null && is_file($sslCa)) {
+        $options[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
+
+        if (!fleetra_env_bool('DB_SSL_VERIFY', true)) {
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+        }
+    }
+
+    // array_replace so a caller's override (e.g. a shorter probe timeout) wins.
+    return array_replace($options, $overrides);
+}
 
 /**
  * Return the shared PDO connection (created once per request).
@@ -46,27 +102,14 @@ function db(): PDO
         return $pdo;
     }
 
-    $dsn = sprintf(
-        'mysql:host=%s;port=%d;dbname=%s;charset=%s',
-        DB_HOST,
-        DB_PORT,
-        DB_NAME,
-        DB_CHARSET
-    );
-
     try {
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-            PDO::ATTR_STRINGIFY_FETCHES  => false,
-        ]);
+        $pdo = new PDO(fleetra_dsn(), DB_USER, DB_PASS, fleetra_db_options());
     } catch (PDOException $exception) {
         fleetra_log('Database connection failed: ' . $exception->getMessage());
         fleetra_fatal(
             'We could not connect to the Fleetra database. '
-            . 'Please make sure MySQL is running in XAMPP and that the "'
-            . DB_NAME . '" database has been imported.'
+            . 'Please check the database credentials for this deployment and make sure "'
+            . DB_NAME . '" has been imported.'
         );
     }
 
@@ -89,20 +132,11 @@ function db_available(): bool
         return $available;
     }
 
-    $dsn = sprintf(
-        'mysql:host=%s;port=%d;dbname=%s;charset=%s',
-        DB_HOST,
-        DB_PORT,
-        DB_NAME,
-        DB_CHARSET
-    );
-
     try {
-        $probe = new PDO($dsn, DB_USER, DB_PASS, [
-            PDO::ATTR_ERRMODE    => PDO::ERRMODE_EXCEPTION,
+        $probe = new PDO(fleetra_dsn(), DB_USER, DB_PASS, fleetra_db_options([
             PDO::ATTR_TIMEOUT    => 2,
             PDO::ATTR_PERSISTENT => false,
-        ]);
+        ]));
         $probe->query('SELECT 1 FROM users LIMIT 1');
 
         $available = true;

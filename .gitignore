@@ -1,0 +1,28 @@
+# =====================================================================
+#  Fleetra — files that must never be committed
+# =====================================================================
+
+# Secrets — real credentials, one per environment.
+.env
+.env.*
+!.env.example
+
+# Runtime logs (recreated automatically, and may contain user data).
+logs/*.log
+
+# User uploads (avatars, bus photos) — deployed per environment.
+uploads/profiles/*
+uploads/buses/*
+!uploads/profiles/.gitkeep
+!uploads/buses/.gitkeep
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Local databases and dumps
+*.sqlite
+*-local.sql

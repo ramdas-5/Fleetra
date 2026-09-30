@@ -26,6 +26,30 @@ if (PHP_SAPI !== 'cli'
     exit;
 }
 
+/*
+ * The environment loader has to be available before anything is read from
+ * it. It is a plain PHP file (no Composer), so it also works on the most
+ * restrictive shared host.
+ */
+require_once __DIR__ . '/env.php';
+
+/*
+ * PHP version guard. Fleetra uses typed properties, match expressions and
+ * the never return type, so 8.0 is the floor. A clear message here beats a
+ * white screen on a host still running PHP 7.
+ */
+if (PHP_VERSION_ID < 80000) {
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!doctype html><meta charset="utf-8"><title>Fleetra — PHP version</title>'
+        . '<div style="font:15px/1.6 system-ui,Arial,sans-serif;max-width:520px;margin:80px auto;padding:28px;'
+        . 'border:1px solid #E2E8F0;border-radius:14px;background:#fff;color:#0F172A">'
+        . '<h1 style="font-size:19px;margin:0 0 10px">Fleetra needs PHP 8.0 or newer</h1>'
+        . '<p style="color:#64748B;margin:0">This server is running PHP ' . PHP_VERSION . '. '
+        . 'Set the PHP version for this site to 8.0 or above in your hosting control panel, then reload.</p></div>';
+    exit;
+}
+
 /* ------------------------------------------------------------------
  | 1. Application identity
  ------------------------------------------------------------------ */
@@ -35,20 +59,27 @@ define('FLEETRA_TAGLINE', 'Smart Transport Management');
 define('FLEETRA_VERSION', '1.0.0');
 
 /**
- * Environment flag.
- *   'local' -> development machine (XAMPP). Verbose logs, demo helpers on.
- *   'production' -> live deployment. Minimal logging, demo helpers off.
+ * Environment flag, read from APP_ENV (env var or .env).
+ *   'local' -> development machine (XAMPP). Demo helpers on.
+ *   'production' -> live deployment. Demo helpers off, HttpOnly-only cookies.
+ * Defaults to 'local' so an existing XAMPP install is unchanged.
  */
-define('APP_ENV', 'local');
+define('APP_ENV', (string) fleetra_env('APP_ENV', 'local'));
 
-/** Set to true to expose demo credentials on the login screen (local use only). */
-define('FLEETRA_SHOW_DEMO_CREDENTIALS', APP_ENV === 'local');
+define('FLEETRA_IS_PRODUCTION', APP_ENV === 'production');
+
+/**
+ * Set to true to expose demo credentials on the login screen and landing
+ * page. Defaults to on locally and off in production; override with
+ * SHOW_DEMO_CREDENTIALS in the environment if you want it either way.
+ */
+define('FLEETRA_SHOW_DEMO_CREDENTIALS', fleetra_env_bool('SHOW_DEMO_CREDENTIALS', APP_ENV === 'local'));
 
 /** Business timezone used for schedules, departures and reports. */
-define('APP_TIMEZONE', 'Asia/Kolkata');
+define('APP_TIMEZONE', (string) fleetra_env('APP_TIMEZONE', 'Asia/Kolkata'));
 
 /** Currency symbol used across fares, tickets and reports. */
-define('APP_CURRENCY', '₹');
+define('APP_CURRENCY', (string) fleetra_env('APP_CURRENCY', '₹'));
 
 /* ------------------------------------------------------------------
  | 2. Paths and base URL
@@ -79,10 +110,32 @@ if ($fleetraDocumentRoot && $fleetraProjectRoot) {
     }
 }
 
-/** Web path to the project root, always with a trailing slash. */
+/**
+ * Web path to the project root, always with a trailing slash.
+ *
+ * Auto-detected from DOCUMENT_ROOT for the normal XAMPP layout. On a host
+ * where that cannot be detected correctly (reverse proxies, symlinked
+ * docroots), set APP_BASE_URL — for example "/" or "/fleetra/" — in the
+ * environment to override it.
+ */
+$fleetraEnvBaseUrl = fleetra_env('APP_BASE_URL');
+
+if ($fleetraEnvBaseUrl !== null) {
+    $fleetraBaseUrl = '/' . trim($fleetraEnvBaseUrl, '/');
+    $fleetraBaseUrl = ($fleetraBaseUrl === '/') ? '/' : $fleetraBaseUrl . '/';
+}
+
 define('BASE_URL', $fleetraBaseUrl);
 
-unset($fleetraDocumentRoot, $fleetraProjectRoot, $fleetraBaseUrl, $fleetraDocumentRootWeb, $fleetraProjectRootWeb, $relative);
+unset(
+    $fleetraDocumentRoot,
+    $fleetraProjectRoot,
+    $fleetraBaseUrl,
+    $fleetraDocumentRootWeb,
+    $fleetraProjectRootWeb,
+    $fleetraEnvBaseUrl,
+    $relative
+);
 
 /* ------------------------------------------------------------------
  | 3. Error handling
@@ -190,7 +243,7 @@ HTML;
 define('SESSION_NAME', 'fleetra_session');
 
 /** Idle timeout in seconds before a session is considered expired (60 minutes). */
-define('SESSION_IDLE_TIMEOUT', 3600);
+define('SESSION_IDLE_TIMEOUT', fleetra_env_int('SESSION_IDLE_TIMEOUT', 3600));
 
 /** How long a "Remember me" session lasts (30 days). */
 define('SESSION_REMEMBER_SECONDS', 2592000);

@@ -1,0 +1,25 @@
+# =====================================================================
+#  Fleetra — build context exclusions
+# =====================================================================
+
+# Never bake secrets into the image.
+.env
+.env.*
+
+# Git and editor noise
+.git
+.gitignore
+.idea
+.vscode
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local runtime state — recreated inside the container.
+logs/*.log
+uploads/profiles/*
+uploads/buses/*
+
+# Docs are not needed at runtime (and are blocked from the web anyway).
+*.md
+LICENSE
