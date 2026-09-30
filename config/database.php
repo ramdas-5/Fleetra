@@ -73,6 +73,46 @@ function db(): PDO
     return $pdo;
 }
 
+/**
+ * True when the Fleetra database can actually be reached.
+ *
+ * Used by the public landing page, which has to render even before the
+ * schema has been imported. It probes with its own short-lived connection
+ * so the friendly fatal page in db() is never triggered by an optional
+ * read. Credentials are still sourced only from this file.
+ */
+function db_available(): bool
+{
+    static $available = null;
+
+    if ($available !== null) {
+        return $available;
+    }
+
+    $dsn = sprintf(
+        'mysql:host=%s;port=%d;dbname=%s;charset=%s',
+        DB_HOST,
+        DB_PORT,
+        DB_NAME,
+        DB_CHARSET
+    );
+
+    try {
+        $probe = new PDO($dsn, DB_USER, DB_PASS, [
+            PDO::ATTR_ERRMODE    => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_TIMEOUT    => 2,
+            PDO::ATTR_PERSISTENT => false,
+        ]);
+        $probe->query('SELECT 1 FROM users LIMIT 1');
+
+        $available = true;
+    } catch (Throwable $exception) {
+        $available = false;
+    }
+
+    return $available;
+}
+
 /* ------------------------------------------------------------------
  | Query helpers — every one of them uses prepared statements.
  ------------------------------------------------------------------ */

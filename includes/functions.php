@@ -499,6 +499,119 @@ function trip_status_options(): array
     ];
 }
 
+/** @return array<string, string> */
+function maintenance_type_options(): array
+{
+    return [
+        'routine'     => 'Routine service',
+        'repair'      => 'Repair',
+        'inspection'  => 'Inspection',
+        'tyre'        => 'Tyres',
+        'oil_change'  => 'Oil change',
+        'brake'       => 'Brakes',
+        'electrical'  => 'Electrical',
+        'bodywork'    => 'Bodywork',
+        'other'       => 'Other',
+    ];
+}
+
+/** @return array<string, string> */
+function maintenance_status_options(): array
+{
+    return [
+        'scheduled'   => 'Scheduled',
+        'in_progress' => 'In progress',
+        'completed'   => 'Completed',
+        'overdue'     => 'Overdue',
+        'cancelled'   => 'Cancelled',
+    ];
+}
+
+/** @return array<string, string> */
+function incident_type_options(): array
+{
+    return [
+        'breakdown' => 'Breakdown',
+        'accident'  => 'Accident',
+        'traffic'   => 'Traffic delay',
+        'medical'   => 'Medical',
+        'security'  => 'Security',
+        'weather'   => 'Weather',
+        'other'     => 'Other',
+    ];
+}
+
+/** @return array<string, string> */
+function incident_severity_options(): array
+{
+    return [
+        'low'      => 'Low',
+        'medium'   => 'Medium',
+        'high'     => 'High',
+        'critical' => 'Critical',
+    ];
+}
+
+/** @return array<string, string> */
+function incident_status_options(): array
+{
+    return [
+        'open'          => 'Open',
+        'investigating' => 'Investigating',
+        'resolved'      => 'Resolved',
+        'closed'        => 'Closed',
+    ];
+}
+
+/** @return array<string, string> */
+function notification_type_options(): array
+{
+    return [
+        'system'      => 'System',
+        'trip'        => 'Trip update',
+        'delay'       => 'Delay',
+        'booking'     => 'Booking',
+        'maintenance' => 'Maintenance',
+        'emergency'   => 'Emergency',
+    ];
+}
+
+/** @return array<string, string> */
+function ticket_status_options(): array
+{
+    return [
+        'valid'     => 'Valid',
+        'used'      => 'Used',
+        'cancelled' => 'Cancelled',
+        'expired'   => 'Expired',
+    ];
+}
+
+/** @return array<string, string> */
+function payment_method_options(): array
+{
+    return [
+        'simulated'   => 'Online (simulated)',
+        'cash'        => 'Cash',
+        'card'        => 'Card',
+        'upi'         => 'UPI',
+        'net_banking' => 'Net banking',
+        'wallet'      => 'Wallet',
+    ];
+}
+
+/** @return array<string, string> */
+function booking_status_options(): array
+{
+    return [
+        'pending'   => 'Pending',
+        'confirmed' => 'Confirmed',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+        'no_show'   => 'No show',
+    ];
+}
+
 /** True when a value is a valid key in one of the option lists above. */
 function is_valid_option(array $options, ?string $value): bool
 {
@@ -687,6 +800,8 @@ function status_variant(?string $status): string
         'due'           => 'warning',
         'overdue'       => 'danger',
         'in_progress'   => 'info',
+        'routine'       => 'muted',
+        'repair'        => 'warning',
         // Trips
         'boarding'      => 'info',
         'running'       => 'primary',
@@ -697,6 +812,14 @@ function status_variant(?string $status): string
         'canceled'      => 'danger',
         'missed'        => 'danger',
         'diverted'      => 'warning',
+        // Tickets
+        'valid'         => 'success',
+        // Notification types (mirrors the notifications.notification_type enum)
+        'trip'          => 'info',
+        'delay'         => 'warning',
+        'booking'       => 'primary',
+        'emergency'     => 'danger',
+        'system'        => 'muted',
         // Bookings & payments
         'confirmed'     => 'success',
         'pending'       => 'warning',

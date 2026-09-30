@@ -878,6 +878,13 @@ img.avatar {
 .form-control.is-invalid, .form-select.is-invalid { border-color: var(--fl-danger); }
 .form-control.is-invalid:focus, .form-select.is-invalid:focus { box-shadow: 0 0 0 3px rgba(220, 38, 38, .12); }
 
+/* Settings screen: one label/control/help block per field */
+.setting-row + .setting-row {
+    border-top: 1px solid var(--fl-border);
+    margin-top: 16px;
+    padding-top: 16px;
+}
+
 .form-section + .form-section {
     border-top: 1px solid var(--fl-border);
     margin-top: 24px;
@@ -1568,3 +1575,126 @@ img.avatar {
     font-size: 12.5px;
     letter-spacing: 0.02em;
 }
+
+/* Outside a table these helpers are used by detail cards and tickets. */
+.cell-muted { color: var(--fl-text-muted); font-size: 13px; }
+.cell-strong { font-weight: 600; }
+
+/* Avatar + name pairing used in passenger and staff lists */
+.cell-person {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+.cell-person > span { min-width: 0; }
+
+.profile-head {
+    align-items: center;
+    display: flex;
+    gap: 14px;
+}
+.profile-head__name { font-size: 16px; font-weight: 600; }
+.profile-head__meta { color: var(--fl-text-muted); font-size: 13px; margin-top: 3px; }
+
+.row-action--success:hover {
+    background: var(--fl-success-soft);
+    border-color: #BBF7D0;
+    color: var(--fl-success);
+}
+
+/* Live tracking map -------------------------------------------------- */
+.map-shell {
+    border: 1px solid var(--fl-border);
+    border-radius: var(--fl-radius);
+    height: 520px;
+    overflow: hidden;
+    position: relative;
+    z-index: 0;
+}
+.map-shell--sm { height: 340px; }
+
+.map-shell .leaflet-container {
+    background: #E2E8F0;
+    font: inherit;
+    height: 100%;
+    width: 100%;
+}
+
+/* Leaflet's own controls are restyled so they match the Fleetra palette. */
+.leaflet-control-zoom a {
+    color: var(--fl-text) !important;
+}
+
+.bus-marker {
+    align-items: center;
+    background: var(--fl-primary);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, .35);
+    color: #fff;
+    display: flex;
+    height: 30px;
+    justify-content: center;
+    width: 30px;
+}
+.bus-marker i { font-size: 15px; }
+.bus-marker--delayed { background: var(--fl-warning); }
+.bus-marker--completed { background: var(--fl-text-soft); }
+.bus-marker--idle { background: var(--fl-success); }
+
+.map-legend {
+    background: rgba(255, 255, 255, .94);
+    border: 1px solid var(--fl-border);
+    border-radius: var(--fl-radius-sm);
+    box-shadow: var(--fl-shadow-xs);
+    font-size: 12px;
+    padding: 10px 12px;
+}
+.map-legend__item { align-items: center; display: flex; gap: 8px; }
+.map-legend__item + .map-legend__item { margin-top: 6px; }
+.map-legend__dot {
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--fl-border);
+    display: inline-block;
+    height: 12px;
+    width: 12px;
+}
+.map-legend__dot--running   { background: var(--fl-primary); }
+.map-legend__dot--delayed   { background: var(--fl-warning); }
+.map-legend__dot--idle      { background: var(--fl-success); }
+.map-legend__dot--completed { background: var(--fl-text-soft); }
+
+/* Live status dot shown next to tracking tables */
+.live-dot {
+    animation: fl-pulse 1.8s ease-in-out infinite;
+    background: var(--fl-success);
+    border-radius: 50%;
+    display: inline-block;
+    height: 8px;
+    margin-right: 6px;
+    width: 8px;
+}
+
+@keyframes fl-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+}
+
+/* Unread notifications are lifted off the page very slightly. */
+.notification--unread {
+    background: #FBFCFE;
+    box-shadow: var(--fl-shadow-xs);
+}
+
+/* Popup content for the Leaflet markers */
+.map-popup { font-size: 12.5px; min-width: 190px; }
+.map-popup strong { font-size: 13.5px; }
+.map-popup dl {
+    display: grid;
+    gap: 2px 10px;
+    grid-template-columns: auto minmax(0, 1fr);
+    margin: 8px 0 0;
+}
+.map-popup dt { color: var(--fl-text-muted); }
+.map-popup dd { font-weight: 500; margin: 0; overflow-wrap: anywhere; }

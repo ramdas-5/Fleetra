@@ -5,8 +5,8 @@
  * passenger/dashboard.php — Passenger home
  *
  * Shows the passenger's own data only: upcoming journeys, booking
- * history and notifications. Bus search and seat selection are part of
- * the passenger booking phase and are surfaced once that module ships.
+ * history and notifications. Searching for a service, picking a seat and
+ * booking live in the search and bookings modules, linked from here.
  */
 
 declare(strict_types=1);
@@ -104,11 +104,13 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="alert alert-info app-alert" role="alert">
-    <i class="bi bi-info-circle app-alert__icon" aria-hidden="true"></i>
+    <i class="bi bi-search app-alert__icon" aria-hidden="true"></i>
     <span class="app-alert__text">
-        Bus search and seat booking arrive in the next development phase. Your existing bookings,
-        tickets and journey details are already live here.
+        Planning another trip? Search a route, compare departure times and reserve a seat.
     </span>
+    <a class="btn btn-sm btn-primary ms-auto" href="<?= e(url('modules/search/index.php')) ?>">
+        <i class="bi bi-search" aria-hidden="true"></i> Search buses
+    </a>
 </div>
 
 <?php if ($nextJourney !== null): ?>

@@ -255,7 +255,10 @@ function find_ticket_by_code(string $code): ?array
 {
     $code = strtoupper(trim($code));
 
-    if (!preg_match('/^(TKT-\d{4,})-([0-9a-f]{6,64})$/', $code, $matches)) {
+    // Ticket numbers are upper-cased above, so the signature half has to be
+    // matched case-insensitively too — a printed code is accepted no matter
+    // which case the scanner or the person at the keyboard types.
+    if (!preg_match('/^(TKT-\d{4,})-([0-9A-F]{6,64})$/', $code, $matches)) {
         return null;
     }
 
@@ -265,11 +268,55 @@ function find_ticket_by_code(string $code): ?array
         return null;
     }
 
-    if (!str_starts_with(ticket_signature((string) $ticket['booking_number']), strtolower($matches[2]))) {
+    $signature = strtolower(ticket_signature((string) $ticket['booking_number']));
+
+    if (!str_starts_with($signature, strtolower($matches[2]))) {
         return null;
     }
 
     return $ticket;
+}
+
+/**
+ * Resolve whatever a gate scanner (or a person at a keyboard) handed over.
+ *
+ * Accepts the signed QR payload (FLTRA|TKT-0001|<signature>), the printed
+ * short code (TKT-0001-ab12cd34ef) or a bare ticket number (TKT-0001).
+ * Anything tampered with resolves to null rather than to the wrong ticket.
+ *
+ * @return array<string, mixed>|null
+ */
+function resolve_ticket_input(string $value): ?array
+{
+    $value = trim($value);
+
+    if ($value === '') {
+        return null;
+    }
+
+    // Full QR payload: FLTRA|<ticket number>|<signature>
+    if (stripos($value, 'FLTRA|') === 0) {
+        $parts = explode('|', $value);
+
+        if (count($parts) < 3) {
+            return null;
+        }
+
+        $ticket = find_ticket_by_number($parts[1]);
+
+        if ($ticket === null) {
+            return null;
+        }
+
+        // Compare against the signature stored with the ticket so a payload
+        // cannot be fabricated for a real ticket number.
+        $expected = (string) ($ticket['qr_code'] ?? '');
+
+        return hash_equals($expected, $value) ? $ticket : null;
+    }
+
+    // Printed short code, then a bare ticket number.
+    return find_ticket_by_code($value) ?? find_ticket_by_number($value);
 }
 
 /**

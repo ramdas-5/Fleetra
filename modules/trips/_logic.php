@@ -14,6 +14,14 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../includes/operations.php';
 
+/*
+ * The trip filters reuse the scheduling lookups (which routes, buses and
+ * drivers can be scheduled), so the scheduling logic has to be loaded here
+ * as well. Without it the filter bar on the trip list fails with a fatal
+ * "undefined function" error.
+ */
+require_once __DIR__ . '/../schedules/_logic.php';
+
 /**
  * Allowed status moves, keyed by the current status.
  * Completed is final; a cancelled trip can only be re-opened.

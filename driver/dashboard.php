@@ -7,8 +7,8 @@
  * Deliberately simple: what am I driving, what is my schedule today,
  * who is on board and what does the route look like.
  *
- * Trip actions (start, end, delay, breakdown, emergency alert) are part
- * of the trip management phase and are surfaced once that module ships.
+ * Trip actions (start, end, delay, breakdown, emergency alert) live in the
+ * trips and incidents modules and are linked from the duty summary below.
  */
 
 declare(strict_types=1);
