@@ -1,0 +1,127 @@
+/* ==================================================================
+   Fleetra — Smart Transport Management System
+   assets/css/responsive.css  |  Tablet & mobile behaviour
+   ------------------------------------------------------------------
+   Desktop is the primary Fleetra experience. On smaller screens the
+   sidebar becomes a drawer, tables scroll horizontally, grids collapse
+   and forms switch to a single column. No horizontal page overflow.
+   ================================================================== */
+
+/* ------------------------------------------------------------------
+   Large laptops
+   ------------------------------------------------------------------ */
+@media (max-width: 1280px) {
+    .page-content { padding: 22px 20px 8px; }
+    .topbar { padding: 12px 20px; }
+    .app-footer { padding: 16px 20px 20px; }
+}
+
+/* ------------------------------------------------------------------
+   Tablets — sidebar becomes an off-canvas drawer
+   ------------------------------------------------------------------ */
+@media (max-width: 1024px) {
+    .sidebar {
+        box-shadow: var(--fl-shadow-md);
+        transform: translateX(-100%);
+        width: var(--fl-sidebar-width);
+    }
+
+    body.sidebar-collapsed .sidebar { width: var(--fl-sidebar-width); }
+    body.sidebar-collapsed .app-main { margin-left: 0; }
+
+    /* Inside the drawer we always show full labels. */
+    body.sidebar-collapsed .brand__text,
+    body.sidebar-collapsed .nav-group__label,
+    body.sidebar-collapsed .nav-link__text,
+    body.sidebar-collapsed .sidebar-user__text { display: flex; }
+    body.sidebar-collapsed .nav-soon,
+    body.sidebar-collapsed .nav-badge,
+    body.sidebar-collapsed .sidebar-user__logout { display: inline-flex; }
+    body.sidebar-collapsed .sidebar__brand { justify-content: space-between; padding: 18px 16px; }
+    body.sidebar-collapsed .nav-link { justify-content: flex-start; padding: 9px 10px; }
+    body.sidebar-collapsed .sidebar-user { justify-content: flex-start; padding: 9px 10px; }
+
+    .app-main { margin-left: 0; }
+    .topbar__menu { display: inline-flex; }
+    .sidebar__collapse { display: none; }
+
+    body.sidebar-open .sidebar { transform: translateX(0); }
+    body.sidebar-open { overflow: hidden; }
+
+    .grid-2, .grid-3,
+    .grid-main-side, .grid-wide-side, .grid-narrow-side { grid-template-columns: minmax(0, 1fr); }
+    .form-card { max-width: 100%; }
+    .auth-page { grid-template-columns: minmax(0, 1fr); }
+    .auth-aside { display: none; }
+}
+
+/* ------------------------------------------------------------------
+   Small tablets / large phones
+   ------------------------------------------------------------------ */
+@media (max-width: 768px) {
+    body { font-size: 14.5px; }
+
+    .page-content { padding: 18px 14px 4px; }
+    .topbar { padding: 10px 14px; gap: 10px; }
+    .app-footer { flex-direction: column; gap: 4px; padding: 14px 14px 18px; text-align: center; }
+
+    .page-head { margin-bottom: 18px; }
+    .page-title { font-size: 22px; }
+    .page-head__actions { width: 100%; }
+    .page-head__actions .btn { flex: 1 1 auto; }
+
+    .stat-grid { gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    .stat-card { padding: 14px 15px; }
+    .stat-card__value { font-size: 23px; }
+
+    .form-row, .form-row--3 { grid-template-columns: minmax(0, 1fr); }
+    .form-card { padding: 0; }
+    .card-fl__body { padding: 16px; }
+    .card-fl__header, .toolbar { padding: 14px 15px; }
+    .card-fl__footer { padding: 13px 15px; }
+    .form-actions { justify-content: stretch; }
+    .form-actions .btn { flex: 1 1 auto; }
+
+    .toolbar { align-items: stretch; flex-direction: column; }
+    .toolbar__filters, .toolbar__actions { width: 100%; }
+    .search-field { min-width: 0; width: 100%; }
+
+    .table-fl thead th, .table-fl tbody td { padding: 11px 13px; }
+    .table-foot { flex-direction: column; gap: 10px; }
+
+    .user-menu__text { display: none; }
+    .user-menu__caret { display: none; }
+    .topbar__right { gap: 4px; }
+}
+
+/* ------------------------------------------------------------------
+   Phones
+   ------------------------------------------------------------------ */
+@media (max-width: 480px) {
+    .page-title { font-size: 20px; }
+    .stat-grid { grid-template-columns: minmax(0, 1fr); }
+    .auth-main { padding: 28px 18px; }
+    .auth-card__title { font-size: 21px; }
+    .empty-state { padding: 34px 18px; }
+    .breadcrumb-item a, .breadcrumb-item.active { font-size: 12.5px; }
+}
+
+/* ------------------------------------------------------------------
+   Short viewports (laptops with limited height)
+   ------------------------------------------------------------------ */
+@media (max-height: 620px) {
+    .sidebar__nav { padding-top: 8px; padding-bottom: 8px; }
+    .nav-group + .nav-group { margin-top: 12px; }
+}
+
+/* ------------------------------------------------------------------
+   Accessibility preferences
+   ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+    }
+}

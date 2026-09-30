@@ -1,0 +1,2 @@
+# Fleetra — configuration (database credentials) must never be web accessible.
+Require all denied

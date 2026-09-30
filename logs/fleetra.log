@@ -1,0 +1,32 @@
+[2026-09-30 21:44:36] [INFO] User #10 created by admin #1
+[2026-09-30 21:44:37] [INFO] User #10 deleted by admin #1
+[2026-09-30 21:44:59] [INFO] User #11 created by admin #1
+[2026-09-30 21:44:59] [INFO] User #11 archived by admin #1
+[2026-09-30 21:45:23] [WARNING] CSRF validation failed for /modules/users/delete.php?id=2
+[2026-09-30 21:46:58] [WARNING] Permission denied: user #7 (passenger) needed "users.manage" at /modules/users/index.php
+[2026-09-30 21:46:58] [WARNING] Permission denied: user #7 (passenger) needed "users.manage" at /modules/users/view.php?id=2
+[2026-09-30 21:46:58] [WARNING] Permission denied: user #7 (passenger) needed "users.manage" at /modules/users/create.php
+[2026-09-30 21:46:58] [WARNING] Permission denied: user #7 (passenger) needed "users.manage" at /modules/users/edit.php?id=2
+[2026-09-30 21:46:58] [WARNING] Permission denied: user #7 (passenger) needed "users.manage" at /modules/users/delete.php?id=2
+[2026-09-30 22:06:08] [INFO] Schedule #13 created by user #1
+[2026-09-30 22:07:08] [INFO] Schedule #14 created by user #1
+[2026-09-30 22:08:36] [INFO] Schedule #13 cancelled by user #1
+[2026-09-30 22:09:37] [INFO] Schedule #14 cancelled by user #1
+[2026-09-30 22:10:11] [INFO] Schedule #15 created by user #1
+[2026-09-30 22:10:11] [INFO] Schedule #16 created by user #1
+[2026-09-30 22:10:43] [INFO] Trip #15 moved to boarding by user #1
+[2026-09-30 22:10:44] [INFO] Trip #15 moved to delayed by user #1
+[2026-09-30 22:11:14] [INFO] Trip #15 moved to completed by user #1
+[2026-09-30 22:11:14] [INFO] Trip #16 moved to boarding by user #1
+[2026-09-30 22:11:46] [WARNING] Permission denied: user #4 (driver) needed "schedules.view" at /modules/schedules/index.php
+[2026-09-30 22:11:46] [WARNING] Permission denied: user #4 (driver) tried to update trip #2
+[2026-09-30 22:12:17] [INFO] Trip #16 moved to running by user #4
+[2026-09-30 22:12:17] [WARNING] Permission denied: user #3 (dispatcher) needed "schedules.manage" at /modules/schedules/create.php
+[2026-09-30 22:12:17] [WARNING] Permission denied: user #3 (dispatcher) needed "schedules.manage" at /modules/schedules/edit.php?id=1
+[2026-09-30 22:12:17] [WARNING] Permission denied: user #3 (dispatcher) needed "schedules.manage" at /modules/schedules/cancel.php?id=2
+[2026-09-30 22:12:49] [INFO] Trip #16 moved to completed by user #3
+[2026-09-30 22:12:49] [WARNING] CSRF validation failed for /modules/schedules/cancel.php?id=16
+[2026-09-30 22:12:49] [WARNING] Permission denied: user #7 (passenger) needed "trips.view" at /modules/trips/index.php
+[2026-09-30 22:12:49] [WARNING] Permission denied: user #7 (passenger) needed "schedules.view" at /modules/schedules/index.php
+[2026-09-30 22:13:22] [INFO] Schedule #17 created by user #1
+[2026-09-30 22:13:22] [INFO] Schedule #17 deleted by user #1

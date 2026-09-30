@@ -1,0 +1,23 @@
+# =====================================================================
+#  Fleetra — Apache configuration (project root)
+#  Applies to http://localhost/fleetra/
+# =====================================================================
+
+# Never list directory contents.
+Options -Indexes
+
+# Do not serve database dumps, logs or documentation as plain text.
+<FilesMatch "\.(sql|log|md|ini|bak|json|lock)$">
+    Require all denied
+</FilesMatch>
+
+# Hide dotfiles (.git, .env and friends).
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

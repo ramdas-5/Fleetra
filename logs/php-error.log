@@ -1,0 +1,8 @@
+[30-Sep-2026 22:05:39 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function schedule_route_options() in C:\xampp\htdocs\Fleetra\modules\trips\index.php:193
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\trips\index.php on line 193
+[30-Sep-2026 22:12:17 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function schedule_route_options() in C:\xampp\htdocs\Fleetra\modules\trips\index.php:193
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\trips\index.php on line 193
