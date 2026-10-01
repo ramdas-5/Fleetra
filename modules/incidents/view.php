@@ -13,7 +13,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../includes/permissions.php';
 require_once __DIR__ . '/_logic.php';
 
-require_permission('incidents.view');
+require_login();
 
 $incidentId = get_int('id');
 
@@ -25,6 +25,25 @@ $incident = find_incident($incidentId);
 
 if ($incident === null) {
     abort_not_found('That incident does not exist.');
+}
+
+/* Authorisation: staff with incidents.view/manage can open any incident;
+   a driver may open an incident they reported or are assigned to. */
+$canViewEvery = can('incidents.view') || can('incidents.manage');
+$isReporter   = (int) ($incident['reported_by'] ?? 0) === user_id();
+$isAssigned   = (int) ($incident['driver_id'] ?? 0) > 0 && (int) db_value(
+    'SELECT COUNT(*) FROM drivers WHERE id = ? AND user_id = ?',
+    [(int) $incident['driver_id'], user_id()],
+    0
+) > 0;
+
+if (!$canViewEvery && !(can('incidents.report') && ($isReporter || $isAssigned))) {
+    fleetra_log(
+        'Permission denied: user #' . user_id() . ' tried to open incident #' . $incidentId,
+        'WARNING'
+    );
+
+    fleetra_fatal('This incident was not reported by you and is not part of your duty.', 403);
 }
 
 $canManage = can('incidents.manage');

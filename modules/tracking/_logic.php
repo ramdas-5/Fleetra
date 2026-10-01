@@ -238,30 +238,25 @@ function tracking_buses(): array
         $busId = (int) $bus['bus_id'];
         $trip  = $activeTrips[$busId] ?? null;
 
-        $latitude  = $bus['latitude'] !== null ? (float) $bus['latitude'] : null;
-        $longitude = $bus['longitude'] !== null ? (float) $bus['longitude'] : null;
+        $hasFix = $bus['latitude'] !== null && $bus['longitude'] !== null;
 
-        // A bus that is on the road but has not reported yet is placed at the
-        // start of its route rather than vanishing from the map.
-        if ($latitude === null && $trip !== null) {
-            $origin = db_one(
-                'SELECT latitude, longitude FROM stops
-                  WHERE route_id = ? AND latitude IS NOT NULL
-                  ORDER BY stop_order LIMIT 1',
-                [(int) $trip['route_id']]
-            );
+        $latitude  = $hasFix ? (float) $bus['latitude'] : null;
+        $longitude = $hasFix ? (float) $bus['longitude'] : null;
 
-            if ($origin !== null) {
-                $latitude  = (float) $origin['latitude'];
-                $longitude = (float) $origin['longitude'];
-            }
-        }
+        /* A bus is only ever plotted at a position it actually reported.
+           Fleetra does NOT invent a location for a bus without a fix — a
+           bus that has never reported simply has no marker, and one whose
+           fix has aged is labelled live / recent / stale / offline. */
+        $freshness = tracking_freshness($hasFix ? (string) $bus['recorded_at'] : null);
 
         $tracked[] = array_merge($bus, [
-            'trip'      => $trip,
-            'latitude'  => $latitude,
-            'longitude' => $longitude,
-            'has_fix'   => $bus['latitude'] !== null,
+            'trip'        => $trip,
+            'latitude'    => $latitude,
+            'longitude'   => $longitude,
+            'has_fix'     => $hasFix,
+            'live_status' => $freshness['status'],
+            'live_label'  => $freshness['label'],
+            'age_seconds' => $freshness['seconds'],
         ]);
     }
 
@@ -283,6 +278,8 @@ function tracking_marker_payload(array $bus): ?array
 
     $trip = $bus['trip'] ?? null;
 
+    $freshness = tracking_freshness((string) ($bus['recorded_at'] ?? ''));
+
     return [
         'bus_id'       => (int) $bus['bus_id'],
         'bus_number'   => (string) $bus['bus_number'],
@@ -295,7 +292,10 @@ function tracking_marker_payload(array $bus): ?array
         'heading'      => $bus['heading'] !== null ? (int) $bus['heading'] : null,
         'source'       => $bus['source'] !== null ? (string) $bus['source'] : null,
         'recorded_at'  => (string) ($bus['recorded_at'] ?? ''),
-        'variant'      => tracking_marker_variant($trip['trip_status'] ?? null, (bool) $bus['has_fix']),
+        'live_status'  => $freshness['status'],
+        'live_label'   => $freshness['label'],
+        'age_seconds'  => $freshness['seconds'],
+        'variant'      => tracking_marker_variant($trip['trip_status'] ?? null, $freshness['status']),
         'trip_id'      => $trip !== null ? (int) $trip['trip_id'] : null,
         'trip_status'  => $trip['trip_status'] ?? null,
         'route_code'   => $trip['route_code'] ?? null,
@@ -320,19 +320,31 @@ function tracking_source_label(?string $source): string
     };
 }
 
-/** Marker variant used by the map for a trip status. */
-function tracking_marker_variant(?string $tripStatus, bool $isTracked): string
+/**
+ * Marker variant for the map: freshness wins over trip status, so an aged
+ * position can never masquerade as a live one.
+ *
+ *   live     fresh fix (<= 2 min)
+ *   recent   fix <= 10 min old
+ *   stale    fix <= 30 min old
+ *   offline  an old fix (or none) — last known position only
+ *   delayed  fresh fix on a delayed service
+ */
+function tracking_marker_variant(?string $tripStatus, string $liveStatus): string
 {
-    if (!$isTracked) {
-        return 'idle';
+    if ($liveStatus === 'offline' || $liveStatus === 'no_location') {
+        return 'offline';
     }
 
-    return match ($tripStatus) {
-        'delayed'   => 'delayed',
-        'completed' => 'completed',
-        'cancelled' => 'completed',
-        default     => '',
-    };
+    if ($liveStatus === 'stale') {
+        return 'stale';
+    }
+
+    if ($tripStatus === 'delayed') {
+        return 'delayed';
+    }
+
+    return $liveStatus === 'recent' ? 'recent' : 'live';
 }
 
 /* ------------------------------------------------------------------

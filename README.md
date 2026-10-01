@@ -220,7 +220,30 @@ with a simulation tool that walks each active bus one step along its route's sto
 Simulated and real fixes are deliberately separated by the `bus_locations.source` column
 (`simulated` vs `device`), and every simulated reading is labelled as such in the UI. Real
 devices can post fixes to `api/tracking.php`; the bus and trip are resolved from the signed-in
-driver's own active duty, so a spoofed `bus_id` is ignored.
+driver's own active duty, so a spoofed `bus_id` is ignored. Drivers share a position from
+`modules/tracking/share.php` (capability `tracking.update`); the fleet map itself needs
+`tracking.view`, so a driver never sees the whole fleet and never gets an "Access denied" page
+after clicking a menu item.
+
+**Position freshness.** A fix is never presented as real-time once it has aged. `tracking_freshness()`
+classifies every reading as **Live** (≤ 2 min), **Recently updated** (≤ 10 min), **Stale** (≤ 30 min)
+or **Offline / no recent location**, and the map marker, status pill and Find-a-bus card all use the
+same classification. Fleetra never invents a position for a bus that has not reported.
+
+### Location reference data and autocomplete
+`database/locations` seeds **239 major bus terminals, stands, stops and landmarks across every
+Indian state and union territory**, with state, city, type and coordinates. `includes/locations.php`
+searches it by an indexed generated `search_text` column, and `api/locations.php` serves the
+autocomplete used by the public landing search and the passenger Find-a-bus page. **Location
+permission is never required** — typed input always works; the optional "use my current location"
+button is user-initiated, and sharing may be declined without breaking the flow. Selecting a
+suggestion fills the city; denied/unavailable geolocation falls back to manual entry.
+
+### Find a bus — realistic availability
+`modules/search/index.php` classifies every service on the chosen date as **live**, **scheduled**,
+**running with no live data**, **departed / last known** or **unavailable** (cancelled, in the
+workshop or fully booked), showing route, departure, ETA and last update for each — including
+services that are not transmitting right now.
 
 ### Tickets and QR codes
 Booking issues a ticket with a human-readable number and a signed code. `modules/tickets/view.php`

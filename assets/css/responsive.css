@@ -84,7 +84,11 @@
 
     .toolbar { align-items: stretch; flex-direction: column; }
     .toolbar__filters, .toolbar__actions { width: 100%; }
-    .search-field { min-width: 0; width: 100%; }
+    .search-field,
+    .search-field--location { min-width: 0; width: 100%; }
+
+    .service-card { grid-template-columns: minmax(0, 1fr); }
+    .service-card__aside { border-left: 0; border-top: 1px solid var(--fl-border); }
 
     .table-fl thead th, .table-fl tbody td { padding: 11px 13px; }
     .table-foot { flex-direction: column; gap: 10px; }

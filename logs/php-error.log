@@ -1,0 +1,2 @@
+[02-Oct-2026 02:30:16 Asia/Kolkata] PHP Warning:  Undefined variable $nearest in C:\xampp\htdocs\Fleetra\api\locations.php on line 110
+[02-Oct-2026 02:30:16 Asia/Kolkata] PHP Warning:  Trying to access array offset on value of type null in C:\xampp\htdocs\Fleetra\api\locations.php on line 110

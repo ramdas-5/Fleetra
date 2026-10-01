@@ -559,6 +559,233 @@
     }
 
     /* --------------------------------------------------------------
+       Location autocomplete
+
+       Any text input wrapped in [data-location-autocomplete] becomes a
+       combobox that suggests India-wide bus terminals, stands and stops
+       from api/locations.php. Manual typing is ALWAYS allowed — the list
+       is only a shortcut, never a requirement. No device location
+       permission is ever requested automatically.
+
+       Markup:
+         <div data-location-autocomplete>
+           <input type="text" id="from" name="from" autocomplete="off">
+           <ul class="loc-suggest" role="listbox" hidden></ul>
+         </div>
+       -------------------------------------------------------------- */
+    function initLocationAutocomplete() {
+        var wrappers = document.querySelectorAll('[data-location-autocomplete]');
+
+        Array.prototype.forEach.call(wrappers, function (wrapper) {
+            var input = wrapper.querySelector('input');
+            var list = wrapper.querySelector('.loc-suggest');
+            var endpoint = wrapper.getAttribute('data-endpoint') || 'api/locations.php';
+
+            if (!input || !list) {
+                return;
+            }
+
+            var items = [];
+            var active = -1;
+            var timer = null;
+            var controller = null;
+
+            input.setAttribute('role', 'combobox');
+            input.setAttribute('aria-autocomplete', 'list');
+            input.setAttribute('aria-expanded', 'false');
+
+            function close() {
+                list.hidden = true;
+                list.innerHTML = '';
+                items = [];
+                active = -1;
+                input.setAttribute('aria-expanded', 'false');
+            }
+
+            function highlight(index) {
+                active = index;
+                Array.prototype.forEach.call(list.children, function (child, i) {
+                    child.classList.toggle('is-active', i === index);
+                    if (i === index) {
+                        child.setAttribute('aria-selected', 'true');
+                    } else {
+                        child.removeAttribute('aria-selected');
+                    }
+                });
+            }
+
+            function choose(index) {
+                var item = items[index];
+
+                if (!item) {
+                    return;
+                }
+
+                input.value = item.city;
+                input.setAttribute('data-location-id', item.id);
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                close();
+                input.focus();
+            }
+
+            function render(results) {
+                items = results || [];
+                list.innerHTML = '';
+
+                if (items.length === 0) {
+                    close();
+                    return;
+                }
+
+                items.forEach(function (item, index) {
+                    var li = document.createElement('li');
+                    li.className = 'loc-suggest__item';
+                    li.setAttribute('role', 'option');
+                    li.setAttribute('data-index', String(index));
+
+                    var main = document.createElement('span');
+                    main.className = 'loc-suggest__main';
+                    main.textContent = item.city + ' · ' + item.name;
+
+                    var sub = document.createElement('span');
+                    sub.className = 'loc-suggest__sub';
+                    sub.textContent = item.state + ' · ' + (item.type_label || 'Location');
+
+                    li.appendChild(main);
+                    li.appendChild(sub);
+
+                    li.addEventListener('mousedown', function (event) {
+                        event.preventDefault();
+                        choose(index);
+                    });
+
+                    list.appendChild(li);
+                });
+
+                list.hidden = false;
+                input.setAttribute('aria-expanded', 'true');
+                highlight(-1);
+            }
+
+            function fetchSuggestions(query) {
+                var url = endpoint + '?q=' + encodeURIComponent(query) + '&limit=8';
+
+                if (controller && typeof controller.abort === 'function') {
+                    controller.abort();
+                }
+                controller = window.AbortController ? new AbortController() : null;
+
+                fetch(url, {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: controller ? controller.signal : undefined
+                })
+                    .then(function (response) { return response.json(); })
+                    .then(function (payload) {
+                        if (payload && payload.success && Array.isArray(payload.locations)) {
+                            render(payload.locations);
+                        }
+                    })
+                    .catch(function () { /* Offline or aborted — keep manual entry. */ });
+            }
+
+            input.addEventListener('input', function () {
+                input.removeAttribute('data-location-id');
+
+                var value = input.value.trim();
+
+                window.clearTimeout(timer);
+
+                if (value.length < 2) {
+                    close();
+                    return;
+                }
+
+                timer = window.setTimeout(function () {
+                    fetchSuggestions(value);
+                }, 200);
+            });
+
+            input.addEventListener('keydown', function (event) {
+                if (list.hidden || items.length === 0) {
+                    if (event.key === 'Escape') {
+                        close();
+                    }
+                    return;
+                }
+
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    highlight((active + 1) % items.length);
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    highlight((active - 1 + items.length) % items.length);
+                } else if (event.key === 'Enter') {
+                    if (active >= 0) {
+                        event.preventDefault();
+                        choose(active);
+                    }
+                } else if (event.key === 'Escape') {
+                    close();
+                }
+            });
+
+            input.addEventListener('blur', function () {
+                window.setTimeout(close, 120);
+            });
+        });
+
+        /* Optional "use my location" — user initiated, never automatic. */
+        Array.prototype.forEach.call(document.querySelectorAll('[data-use-location]'), function (button) {
+            button.addEventListener('click', function () {
+                var targetId = button.getAttribute('data-target');
+                var input = targetId ? document.getElementById(targetId) : null;
+                var endpoint = button.getAttribute('data-endpoint') || 'api/locations.php';
+
+                if (!input) {
+                    return;
+                }
+
+                if (!navigator.geolocation) {
+                    toast('This browser cannot share a location. Please type your city or stop.', 'warning');
+                    return;
+                }
+
+                button.disabled = true;
+
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    fetch(endpoint + '?lat=' + encodeURIComponent(position.coords.latitude) +
+                          '&lng=' + encodeURIComponent(position.coords.longitude), {
+                        credentials: 'same-origin',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                        .then(function (response) { return response.json(); })
+                        .then(function (payload) {
+                            button.disabled = false;
+
+                            if (payload && payload.success && payload.location) {
+                                input.value = payload.location.city;
+                                input.setAttribute('data-location-id', payload.location.id);
+                                input.dispatchEvent(new Event('change', { bubbles: true }));
+                                toast('Nearest terminal: ' + payload.location.name + ' (' +
+                                      payload.location.city + '). You can edit it.', 'success');
+                            } else {
+                                toast('No known terminal near you. Please type your location.', 'info');
+                            }
+                        })
+                        .catch(function () {
+                            button.disabled = false;
+                            toast('Could not read your location. Please type it instead.', 'warning');
+                        });
+                }, function () {
+                    button.disabled = false;
+                    toast('Location permission denied. Type your city or stop instead.', 'info');
+                }, { timeout: 8000, maximumAge: 300000 });
+            });
+        });
+    }
+
+    /* --------------------------------------------------------------
        Bootstrap
        -------------------------------------------------------------- */
     document.addEventListener('DOMContentLoaded', function () {
@@ -572,6 +799,7 @@
         initSchedulePlanner();
         initSeatPicker();
         initPrintButtons();
+        initLocationAutocomplete();
     });
 
     window.Fleetra = {

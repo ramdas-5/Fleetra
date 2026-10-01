@@ -199,16 +199,20 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 
                 <form class="lp-search" method="get" action="<?= e(url('modules/search/index.php')) ?>">
                     <div class="lp-search__fields">
-                        <div class="lp-search__field">
+                        <div class="lp-search__field" data-location-autocomplete
+                             data-endpoint="<?= e(url('api/locations.php')) ?>">
                             <label class="lp-search__label" for="hero_from">From</label>
                             <input class="lp-search__input" type="text" id="hero_from" name="from"
-                                   placeholder="e.g. Bengaluru" autocomplete="off">
+                                   placeholder="City, terminal or stop" autocomplete="off">
+                            <ul class="loc-suggest" role="listbox" aria-label="Boarding location suggestions" hidden></ul>
                         </div>
 
-                        <div class="lp-search__field">
+                        <div class="lp-search__field" data-location-autocomplete
+                             data-endpoint="<?= e(url('api/locations.php')) ?>">
                             <label class="lp-search__label" for="hero_to">To</label>
                             <input class="lp-search__input" type="text" id="hero_to" name="to"
-                                   placeholder="e.g. Mysuru" autocomplete="off">
+                                   placeholder="City, terminal or stop" autocomplete="off">
+                            <ul class="loc-suggest" role="listbox" aria-label="Destination suggestions" hidden></ul>
                         </div>
 
                         <div class="lp-search__field">

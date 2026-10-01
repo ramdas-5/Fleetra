@@ -221,7 +221,8 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 160px);
 }
 
-.lp-search__field { display: flex; flex-direction: column; gap: 6px; }
+.lp-search__field { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.lp-search__field .loc-suggest { color: var(--fl-text); }
 
 .lp-search__label {
     color: rgba(226, 232, 240, .7);

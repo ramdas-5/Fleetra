@@ -15,10 +15,10 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../includes/permissions.php';
 require_once __DIR__ . '/_logic.php';
 
-// Simulation is an operations tool, not a passenger feature.
-if (!has_role('admin', 'manager', 'dispatcher')) {
-    require_permission('tracking.update');
-}
+/* Simulation is an operations tool. It is restricted to operations roles
+   on the server — a driver holding only tracking.update must NOT be able
+   to advance the fleet simulation. */
+require_role('admin', 'manager', 'dispatcher');
 
 require_csrf();
 

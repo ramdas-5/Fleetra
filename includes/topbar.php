@@ -15,7 +15,9 @@ declare(strict_types=1);
 
 $topbarUser     = current_user();
 $topbarUnread   = unread_notification_count();
-$topbarNotificationsUrl = file_exists(BASE_PATH . '/modules/notifications/index.php')
+// The bell is only shown to roles that can actually open the notification
+// centre — an inaccessible control is never rendered.
+$topbarNotificationsUrl = can('notifications.view') && file_exists(BASE_PATH . '/modules/notifications/index.php')
     ? url('modules/notifications/index.php')
     : null;
 $topbarProfileUrl = file_exists(BASE_PATH . '/profile.php') ? url('profile.php') : null;

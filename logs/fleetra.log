@@ -8,3 +8,13 @@
 [2026-10-02 02:03:17] [WARNING] Permission denied: user #4 (driver) needed "incidents.view" at /Fleetra/modules/incidents/index.php
 [2026-10-02 02:03:41] [WARNING] Permission denied: user #4 (driver) needed "tracking.view" at /Fleetra/modules/tracking/index.php
 [2026-10-02 02:03:44] [WARNING] Permission denied: user #4 (driver) needed "incidents.view" at /Fleetra/modules/incidents/index.php
+[2026-10-02 02:30:57] [WARNING] Permission denied: user #7 (passenger) needed "users.manage" at /modules/users/index.php
+[2026-10-02 02:32:44] [WARNING] Permission denied: user #4 (driver) needed "tracking.view" at /modules/tracking/index.php
+[2026-10-02 02:32:44] [WARNING] Permission denied: user #4 (driver) needed "incidents.view" at /modules/incidents/index.php
+[2026-10-02 02:32:44] [WARNING] Permission denied: user #4 (driver) needed "users.manage" at /modules/users/index.php
+[2026-10-02 02:32:44] [WARNING] Permission denied: user #4 (driver) needed "fleet.view" at /modules/buses/index.php
+[2026-10-02 02:32:44] [WARNING] Permission denied: user #4 (driver) needed "reports.view" at /modules/reports/index.php
+[2026-10-02 02:34:36] [WARNING] Permission denied: user #4 (driver) needed "tracking.view" at /modules/tracking/index.php
+[2026-10-02 02:35:24] [WARNING] CSRF validation failed for api/tracking.php (user #4)
+[2026-10-02 02:35:25] [WARNING] Permission denied: user #4 (driver) needed "tracking.view" at /api/tracking.php?action=positions
+[2026-10-02 02:38:25] [WARNING] Permission denied: user #7 tried to open booking #2

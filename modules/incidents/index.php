@@ -14,10 +14,16 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../includes/permissions.php';
 require_once __DIR__ . '/_logic.php';
 
-require_permission('incidents.view');
+/* Staff with incidents.view see the whole register. A driver who can only
+   report (incidents.report) may open the same page but is scoped, on the
+   server, to the incidents they raised or are the assigned driver on. */
+if (!can('incidents.view') && !can('incidents.manage') && !can('incidents.report')) {
+    require_permission('incidents.view');
+}
 
 $canManage = can('incidents.manage');
 $canReport = can('incidents.report');
+$seesEveryIncident = can('incidents.view') || can('incidents.manage');
 
 $search         = get('q');
 $typeFilter     = get('type');
@@ -29,6 +35,13 @@ $openOnly       = get('view') === 'open';
 
 $where  = [];
 $params = [];
+
+// Report-only callers (drivers) can only ever see their own incidents.
+if (!$seesEveryIncident) {
+    $where[]  = '(i.reported_by = ? OR i.driver_id = (SELECT id FROM drivers WHERE user_id = ?))';
+    $params[] = user_id();
+    $params[] = user_id();
+}
 
 if ($openOnly) {
     $where[] = "i.status IN ('open','investigating')";

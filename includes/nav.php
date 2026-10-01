@@ -56,7 +56,14 @@ function fleetra_navigation(): array
                     'label'    => 'Live Tracking',
                     'icon'     => 'bi-broadcast-pin',
                     'href'     => 'modules/tracking/index.php',
-                    'capabilities' => ['tracking.view', 'tracking.update'],
+                    'capabilities' => ['tracking.view'],
+                ],
+                [
+                    'key'      => 'share-location',
+                    'label'    => 'Share My Location',
+                    'icon'     => 'bi-geo-alt',
+                    'href'     => 'modules/tracking/share.php',
+                    'capabilities' => ['tracking.update'],
                 ],
                 [
                     'key'      => 'incidents',

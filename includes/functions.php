@@ -760,6 +760,73 @@ function initials(?string $name): string
     return $initials !== '' ? $initials : 'FL';
 }
 
+/*
+ * Live-position freshness.
+ *
+ * A GPS fix is only "live" for a short while. These thresholds decide how
+ * a position is labelled so a stale reading is never shown as if it were
+ * happening right now. Override the settings below to tune the windows.
+ */
+const TRACKING_LIVE_SECONDS   = 120;   // <= 2 min  → Live
+const TRACKING_RECENT_SECONDS = 600;   // <= 10 min → Recently updated
+const TRACKING_STALE_SECONDS  = 1800;  // <= 30 min → Stale
+
+/**
+ * Classify a position timestamp into a freshness status.
+ *
+ * @return array{status:string, label:string, variant:string, seconds:?int, recorded_at:?string}
+ *         status: live | recent | stale | offline | no_location
+ */
+function tracking_freshness(?string $recordedAt): array
+{
+    if ($recordedAt === null || trim($recordedAt) === '') {
+        return [
+            'status'      => 'no_location',
+            'label'       => 'No recent location',
+            'variant'     => 'muted',
+            'seconds'     => null,
+            'recorded_at' => null,
+        ];
+    }
+
+    $timestamp = strtotime($recordedAt);
+
+    if ($timestamp === false) {
+        return [
+            'status'      => 'no_location',
+            'label'       => 'No recent location',
+            'variant'     => 'muted',
+            'seconds'     => null,
+            'recorded_at' => null,
+        ];
+    }
+
+    $seconds = max(0, time() - $timestamp);
+
+    if ($seconds <= TRACKING_LIVE_SECONDS) {
+        return ['status' => 'live',     'label' => 'Live',                'variant' => 'success', 'seconds' => $seconds, 'recorded_at' => $recordedAt];
+    }
+
+    if ($seconds <= TRACKING_RECENT_SECONDS) {
+        return ['status' => 'recent',   'label' => 'Recently updated',    'variant' => 'info',    'seconds' => $seconds, 'recorded_at' => $recordedAt];
+    }
+
+    if ($seconds <= TRACKING_STALE_SECONDS) {
+        return ['status' => 'stale',    'label' => 'Stale location',      'variant' => 'warning', 'seconds' => $seconds, 'recorded_at' => $recordedAt];
+    }
+
+    return ['status' => 'offline', 'label' => 'Offline — no recent location', 'variant' => 'muted', 'seconds' => $seconds, 'recorded_at' => $recordedAt];
+}
+
+/** Render a small pill for a live-position freshness status. */
+function live_status_badge(?string $recordedAt): string
+{
+    $freshness = tracking_freshness($recordedAt);
+
+    return '<span class="badge-status badge-' . e($freshness['variant']) . ' status-dot status-dot--' . e($freshness['status']) . '">'
+        . e($freshness['label']) . '</span>';
+}
+
 /** Shorten long text for tables and cards. */
 function truncate(?string $text, int $length = 60): string
 {
@@ -802,6 +869,12 @@ function status_variant(?string $status): string
         'in_progress'   => 'info',
         'routine'       => 'muted',
         'repair'        => 'warning',
+        // Live position freshness
+        'live'          => 'success',
+        'recent'        => 'info',
+        'stale'         => 'warning',
+        'offline'       => 'muted',
+        'no_location'   => 'muted',
         // Trips
         'boarding'      => 'info',
         'running'       => 'primary',
