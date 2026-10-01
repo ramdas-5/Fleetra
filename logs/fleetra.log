@@ -1,1 +1,10 @@
 [2026-09-30 23:32:57] [WARNING] Permission denied: user #7 (passenger) needed "fleet.view" at /Fleetra/modules/buses/view.php?id=1
+[2026-10-01 00:13:02] [WARNING] Permission denied: user #0 tried to open booking #3
+[2026-10-01 00:13:04] [WARNING] Permission denied: user #0 tried to open ticket TKT-0003
+[2026-10-02 02:02:58] [WARNING] Permission denied: user #4 (driver) needed "schedules.view" at /Fleetra/modules/schedules/view.php?id=10
+[2026-10-02 02:03:05] [WARNING] Permission denied: user #4 (driver) needed "tracking.view" at /Fleetra/modules/tracking/index.php
+[2026-10-02 02:03:12] [WARNING] Permission denied: user #4 (driver) needed "incidents.view" at /Fleetra/modules/incidents/index.php
+[2026-10-02 02:03:15] [WARNING] Permission denied: user #4 (driver) needed "incidents.view" at /Fleetra/modules/incidents/index.php
+[2026-10-02 02:03:17] [WARNING] Permission denied: user #4 (driver) needed "incidents.view" at /Fleetra/modules/incidents/index.php
+[2026-10-02 02:03:41] [WARNING] Permission denied: user #4 (driver) needed "tracking.view" at /Fleetra/modules/tracking/index.php
+[2026-10-02 02:03:44] [WARNING] Permission denied: user #4 (driver) needed "incidents.view" at /Fleetra/modules/incidents/index.php
