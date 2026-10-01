@@ -58,7 +58,7 @@ There are three secrets you must set on any host: **the database credentials** a
 **Known limits to design around:** ~10 second PHP execution limit, no SSH, no cron jobs,
 ~50,000 hits/day fair-use cap, and no outbound connections from PHP. Fleetra works within
 all of these — the only internet use is your browser fetching OpenStreetMap tiles for the
-live map, which is not affected.
+incident-location map, which is not affected.
 
 ### A1. Create the account and website
 
@@ -240,8 +240,8 @@ Do these right after the first successful login:
    portfolio demo.
 5. **Confirm HTTPS is active**, then log out and back in so the session cookie is reissued
    as `Secure`.
-6. **Exercise the live map once** — the OpenStreetMap tiles need your browser to have
-   internet access.
+6. **Exercise a booking end to end** — search, pick a seat and download the ticket PDF;
+   the incident map tiles also need your browser to have internet access.
 7. **Check `logs/php-error.log` and `logs/fleetra.log`** after a click-through. Both should
    stay small; the root `.htaccess` keeps them off the web.
 

@@ -52,20 +52,6 @@ function fleetra_navigation(): array
                     'capabilities' => ['schedules.view', 'schedules.manage'],
                 ],
                 [
-                    'key'      => 'tracking',
-                    'label'    => 'Live Tracking',
-                    'icon'     => 'bi-broadcast-pin',
-                    'href'     => 'modules/tracking/index.php',
-                    'capabilities' => ['tracking.view'],
-                ],
-                [
-                    'key'      => 'share-location',
-                    'label'    => 'Share My Location',
-                    'icon'     => 'bi-geo-alt',
-                    'href'     => 'modules/tracking/share.php',
-                    'capabilities' => ['tracking.update'],
-                ],
-                [
                     'key'      => 'incidents',
                     'label'    => 'Incidents',
                     'icon'     => 'bi-exclamation-triangle',
@@ -99,6 +85,13 @@ function fleetra_navigation(): array
                     'capabilities' => ['routes.view', 'routes.manage'],
                 ],
                 [
+                    'key'      => 'locations',
+                    'label'    => 'Locations & Terminals',
+                    'icon'     => 'bi-geo-alt',
+                    'href'     => 'modules/locations/index.php',
+                    'capabilities' => ['locations.manage'],
+                ],
+                [
                     'key'      => 'maintenance',
                     'label'    => 'Maintenance',
                     'icon'     => 'bi-tools',
@@ -115,6 +108,9 @@ function fleetra_navigation(): array
                     'label'    => 'Search Buses',
                     'icon'     => 'bi-search',
                     'href'     => 'modules/search/index.php',
+                    // Passenger booking journey — never shown to staff, whose
+                    // booking work happens in Manage Bookings instead.
+                    'roles'        => ['passenger'],
                     'capabilities' => ['trips.search'],
                 ],
                 [
@@ -215,9 +211,22 @@ function nav_resolve_href(array $item): ?string
     return url($href);
 }
 
-/** True when the signed-in user may see a navigation item. */
+/**
+ * True when the signed-in user may see a navigation item.
+ *
+ * An item may be restricted to an explicit list of roles as well as to a
+ * capability. The UI is built around each role's actual workflow: a broad
+ * admin permission does not mean every role-specific screen is shown, so
+ * the passenger booking journey stays hidden from administrators.
+ */
 function nav_item_allowed(array $item): bool
 {
+    $roles = $item['roles'] ?? [];
+
+    if ($roles !== [] && !has_role(...$roles)) {
+        return false;
+    }
+
     $capabilities = $item['capabilities'] ?? [];
 
     if ($capabilities === []) {

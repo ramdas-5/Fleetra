@@ -92,10 +92,10 @@ $features = [
         'bullets' => ['Pro-rated fares by journey leg', 'Seat locking at the database level', 'QR verification at the gate'],
     ],
     [
-        'icon'  => 'bi-broadcast-pin',
-        'title' => 'Live operations',
-        'text'  => 'Drivers start, delay and complete services while dispatch watches the board.',
-        'bullets' => ['Trip status workflow', 'Live map with device fixes', 'Delay and incident reporting'],
+        'icon'  => 'bi-clipboard-check',
+        'title' => 'Daily operations',
+        'text'  => 'Drivers start, delay and complete services while dispatch works from a single board.',
+        'bullets' => ['Trip status workflow', 'Delay and incident reporting', 'Boarding and passenger counts'],
     ],
     [
         'icon'  => 'bi-tools',
@@ -114,9 +114,9 @@ $features = [
 $roles = [
     ['bi-shield-lock',  'Administrator',     'Full control: users, roles, settings, audit trail and every module.'],
     ['bi-clipboard-data', 'Transport Manager', 'Runs the operation: fleet, drivers, routes, schedules and maintenance.'],
-    ['bi-headset',      'Dispatcher',        'Owns the live board: assigns vehicles, updates trips and reports incidents.'],
+    ['bi-headset',      'Dispatcher',        'Owns the dispatch board: assigns vehicles, updates trips and reports incidents.'],
     ['bi-steering-wheel', 'Driver',          'A simple duty sheet: today\'s trips, route, passengers and status updates.'],
-    ['bi-person',       'Passenger',         'Searches buses, books seats, holds tickets and tracks the trip.'],
+    ['bi-person',       'Passenger',         'Searches buses, books seats and prints or downloads tickets.'],
 ];
 
 $demoAccounts = [
@@ -134,7 +134,7 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Fleetra is a smart bus and transport management system: fleet, drivers, scheduling, bookings, tickets, live tracking, maintenance and reporting in one console.">
+    <meta name="description" content="Fleetra is a smart bus and transport management system: fleet, drivers, scheduling, bookings, tickets, maintenance and reporting in one console.">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
     <title><?= e($pageTitle) ?></title>
 

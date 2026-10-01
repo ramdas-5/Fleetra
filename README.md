@@ -4,9 +4,9 @@ A professional transport operations platform built with **pure PHP, MySQL, Boots
 vanilla JavaScript**. No frameworks, no build step — it runs directly on XAMPP.
 
 Covers the full journey of a transport company: fleet and driver records, routes and stops,
-timetables, live trip operations, passenger search and seat booking, printable QR tickets,
-GPS tracking, workshop maintenance, incident reporting, notifications, reporting and CSV
-export — all behind one role-aware console.
+timetables, trip operations, passenger search and seat booking, printable/PDF tickets, workshop
+maintenance, incident reporting, notifications, reporting and CSV export — all behind one
+role-aware console.
 
 > **Build status: complete — all nine development phases implemented.**
 >
@@ -22,8 +22,8 @@ export — all behind one role-aware console.
 >   the trip status machine.
 > - **Phase 6 — Passenger system:** bus search, seat map, booking, cancellations, **tickets**
 >   with printable QR, booking history, passenger directory.
-> - **Phase 7 — Smart features:** live **tracking** (Leaflet + OSM) with GPS simulation,
->   **incidents**, **maintenance**, **notifications**.
+> - **Phase 7 — Smart features:** **incidents**, **maintenance**, **notifications**, and an
+>   India-wide **location & terminal directory** with search-as-you-type autocomplete.
 > - **Phase 8 — Reporting:** eight reports with filters + Chart.js and UTF-8 CSV export, plus
 >   the **activity log** and **settings** screens.
 > - **Phase 9 — Final polish:** UI consistency, responsive behaviour, validation, permissions,
@@ -44,7 +44,7 @@ export — all behind one role-aware console.
 | PHP extensions | `pdo_mysql` (required), `mbstring` (required), `fileinfo` (recommended) |
 | Database | MariaDB 10.4 / MySQL 5.7+ (generated columns are used for seat locking) |
 | Browser  | Any modern browser |
-| Internet | Only for the OpenStreetMap tiles on the live map. Every vendor asset is served locally from `assets/vendor/`, so the rest of the app works offline. |
+| Internet | Only for the OpenStreetMap tiles on the incident-location map. Every vendor asset is served locally from `assets/vendor/`, so the rest of the app works offline. |
 
 ---
 
@@ -118,14 +118,13 @@ fleetra/
 │   ├── bookings/      index  create  view  cancel                _logic
 │   ├── tickets/       index  view  validate  status
 │   ├── passengers/    index  view
-│   ├── tracking/      index (Leaflet map)  simulate  _logic
 │   ├── maintenance/   index (+?view=due diary)  create  edit  view  delete  _form  _logic
 │   ├── incidents/     index  create  view  status         _logic
 │   ├── notifications/ index  send  read                   _logic
 │   ├── reports/       index  export                       _logic   (8 reports, CSV)
 │   ├── logs/          index (activity / audit log)
 │   └── settings/      index                               _logic
-├── api/           notifications.php  tracking.php      (AJAX endpoints)
+├── api/           notifications.php  locations.php     (AJAX endpoints)
 ├── config/        config.php  database.php             ← only place with DB credentials
 ├── includes/      auth.php  permissions.php  functions.php  operations.php
 │                  nav.php  header.php  sidebar.php  topbar.php  footer.php
@@ -162,7 +161,6 @@ Capabilities are declared in one place — `includes/permissions.php` — and su
 | Fleet, drivers, routes, stops | ✅ manage | ✅ manage | view only | — | — |
 | Schedules | ✅ manage | ✅ manage | view only | — | — |
 | Trips (operate / update status) | ✅ | ✅ | ✅ | own trips | — |
-| Live tracking | ✅ | ✅ | ✅ | send position | view |
 | Maintenance | ✅ | ✅ | — | report | — |
 | Incidents | ✅ | ✅ | report / view | report | — |
 | Bookings | ✅ | view | ✅ manage | — | own |
@@ -213,37 +211,27 @@ popular routes (from live booking counts), a role overview, and — on a local i
 demo-account panel. Styling lives in `assets/css/landing.css`, layered on the same design
 tokens as the console.
 
-### Live tracking and GPS simulation
-`modules/tracking/` draws buses on a Leaflet + OpenStreetMap map, refreshed by polling
-`api/tracking.php`. Because a local XAMPP box has no GPS hardware, positions can be advanced
-with a simulation tool that walks each active bus one step along its route's stop polyline.
-Simulated and real fixes are deliberately separated by the `bus_locations.source` column
-(`simulated` vs `device`), and every simulated reading is labelled as such in the UI. Real
-devices can post fixes to `api/tracking.php`; the bus and trip are resolved from the signed-in
-driver's own active duty, so a spoofed `bus_id` is ignored. Drivers share a position from
-`modules/tracking/share.php` (capability `tracking.update`); the fleet map itself needs
-`tracking.view`, so a driver never sees the whole fleet and never gets an "Access denied" page
-after clicking a menu item.
-
-**Position freshness.** A fix is never presented as real-time once it has aged. `tracking_freshness()`
-classifies every reading as **Live** (≤ 2 min), **Recently updated** (≤ 10 min), **Stale** (≤ 30 min)
-or **Offline / no recent location**, and the map marker, status pill and Find-a-bus card all use the
-same classification. Fleetra never invents a position for a bus that has not reported.
-
 ### Location reference data and autocomplete
-`database/locations` seeds **239 major bus terminals, stands, stops and landmarks across every
-Indian state and union territory**, with state, city, type and coordinates. `includes/locations.php`
-searches it by an indexed generated `search_text` column, and `api/locations.php` serves the
-autocomplete used by the public landing search and the passenger Find-a-bus page. **Location
-permission is never required** — typed input always works; the optional "use my current location"
-button is user-initiated, and sharing may be declined without breaking the flow. Selecting a
-suggestion fills the city; denied/unavailable geolocation falls back to manual entry.
+`database/locations` seeds the India-wide bus directory: **377 real bus terminals, stands, stops
+and landmarks across all 36 states and union territories**, each with city, district, state,
+ISO state code and approximate coordinates, plus alternate/former-name aliases (Bangalore,
+Calcutta, Bombay, Mysore...). `includes/locations.php` searches it by an indexed generated
+`search_text` column (city, name, district, aliases, state), and `api/locations.php` serves the
+autocomplete used by the public landing search and the passenger Find-a-bus page.
 
-### Find a bus — realistic availability
-`modules/search/index.php` classifies every service on the chosen date as **live**, **scheduled**,
-**running with no live data**, **departed / last known** or **unavailable** (cancelled, in the
-workshop or fully booked), showing route, departure, ETA and last update for each — including
-services that are not transmitting right now.
+**Location permission is never required** — typed input always works; the optional "use my
+current location" button is user-initiated, and declining it falls back to manual entry.
+Administrators curate the directory in `modules/locations/` (search, filter, paginate, add, edit,
+remove).
+
+### Find a bus — separate From/To and clean bus cards
+`modules/search/index.php` presents two clearly separated fields — **From** ("Enter your current
+location") and **To** ("Enter destination") — with a swap control, date and passengers, and
+autocomplete on both. Results are rendered as clean bus cards (bus/operator, from/to, departure,
+arrival, duration, stops, seats free, fare, bus type) classified only by the timetable:
+**Available**, **Departed** or **Unavailable** (cancelled, in the workshop or fully booked).
+The full passenger journey is: search → select seats → book/pay → view, print or download the
+PDF ticket.
 
 ### Tickets and QR codes
 Booking issues a ticket with a human-readable number and a signed code. `modules/tickets/view.php`
@@ -325,17 +313,16 @@ page was crawled over HTTP for all five roles plus guests.
 **Access control (HTTP status per role)**
 - Guests are redirected (302) from every guarded page; the landing page returns 200.
 - Admin: 200 on every module page (buses, drivers, routes, stops, users, schedules, trips,
-  bookings, tickets, passengers, tracking, maintenance, incidents, notifications, reports,
+  bookings, tickets, passengers, locations, maintenance, incidents, notifications, reports,
   logs, settings).
 - Manager: 200 on fleet, maintenance, reports, passengers and incidents; **403** on users,
   settings, logs, tickets and the admin dashboard.
-- Dispatcher: 200 on trips, tracking, bookings, buses and incident reporting; **403** on
+- Dispatcher: 200 on trips, bookings, buses and incident reporting; **403** on
   bus creation, maintenance, reports, passengers and users.
 - Driver: 200 on their own dashboard, trips, notifications and incident reporting; **403** on
-  another driver's trip, the incident list, the tracking page, search, buses and maintenance.
-- Passenger: 200 on dashboard, search, bookings, tickets, tracking and notifications; **403**
-  on another passenger's booking, ticket validation, incidents, passengers, users, reports and
-  the simulation tool.
+  another driver's trip, the incident list, search, buses and maintenance.
+- Passenger: 200 on dashboard, search, bookings, tickets and notifications; **403**
+  on another passenger's booking, ticket validation, incidents, passengers, users and reports.
 - An access-denied page renders for every rejected request; zero unexpected errors.
 
 **Authentication**
@@ -356,9 +343,9 @@ page was crawled over HTTP for all five roles plus guests.
   broadcast reaching exactly the selected audience. A bad CSRF token returns 419.
 - Maintenance: full create → edit → delete round-trip, with the affected bus's status and
   odometer reconciled each time.
-- Tracking: `simulate.php` appends a position labelled `simulated`; a device fix from a driver
-  with an active duty is accepted and a spoofed `bus_id` is ignored; with no active duty the
-  request is refused.
+- Locations: autocomplete returns ranked matches (city, terminal, aliases) and finding a
+  location never requires browser/device permission; the optional "use my location" helper
+  degrades to manual entry when declined.
 - Reports: all eight reports render with rows and a chart, and all eight CSV exports return
   200 with a UTF-8 BOM; a bogus report key returns 404.
 - Settings: valid saves persist; invalid email/phone/out-of-range values are rejected with
@@ -373,7 +360,6 @@ warnings; `logs/fleetra.log` records no failed queries.
 
 The schema and modules are deliberately shaped so these can be added without re-architecting:
 
-- Real GPS ingestion from a mobile app via the existing `api/tracking.php` device endpoint.
 - RFID / barcode hardware feeding `modules/tickets/validate.php`.
 - Online payment gateways replacing the simulated payment step.
 - Email/SMS delivery for the existing notification rows.

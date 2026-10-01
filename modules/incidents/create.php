@@ -268,7 +268,7 @@ require __DIR__ . '/../../includes/header.php';
                         <?php if (isset($errors['longitude'])): ?>
                             <p class="form-error"><?= e($errors['longitude']) ?></p>
                         <?php endif; ?>
-                        <p class="form-text">Optional. Used to place the incident on the live map.</p>
+                        <p class="form-text">Optional. Used to place the incident on the map.</p>
                     </div>
                 </div>
             </div>

@@ -1,2 +1,30 @@
 [02-Oct-2026 02:30:16 Asia/Kolkata] PHP Warning:  Undefined variable $nearest in C:\xampp\htdocs\Fleetra\api\locations.php on line 110
 [02-Oct-2026 02:30:16 Asia/Kolkata] PHP Warning:  Trying to access array offset on value of type null in C:\xampp\htdocs\Fleetra\api\locations.php on line 110
+[02-Oct-2026 02:51:19 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function tracking_freshness() in C:\xampp\htdocs\Fleetra\modules\search\index.php:114
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\search\index.php on line 114
+[02-Oct-2026 02:51:25 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function tracking_freshness() in C:\xampp\htdocs\Fleetra\modules\search\index.php:114
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\search\index.php on line 114
+[02-Oct-2026 02:51:30 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function tracking_freshness() in C:\xampp\htdocs\Fleetra\modules\search\index.php:114
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\search\index.php on line 114
+[02-Oct-2026 02:51:31 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function tracking_freshness() in C:\xampp\htdocs\Fleetra\modules\search\index.php:114
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\search\index.php on line 114
+[02-Oct-2026 02:51:35 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function tracking_freshness() in C:\xampp\htdocs\Fleetra\modules\search\index.php:114
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\search\index.php on line 114
+[02-Oct-2026 02:52:39 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function tracking_freshness() in C:\xampp\htdocs\Fleetra\modules\search\index.php:114
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\search\index.php on line 114
+[02-Oct-2026 02:52:52 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function tracking_freshness() in C:\xampp\htdocs\Fleetra\modules\search\index.php:114
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Fleetra\modules\search\index.php on line 114

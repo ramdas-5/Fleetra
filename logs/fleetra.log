@@ -18,3 +18,18 @@
 [2026-10-02 02:35:24] [WARNING] CSRF validation failed for api/tracking.php (user #4)
 [2026-10-02 02:35:25] [WARNING] Permission denied: user #4 (driver) needed "tracking.view" at /api/tracking.php?action=positions
 [2026-10-02 02:38:25] [WARNING] Permission denied: user #7 tried to open booking #2
+[2026-10-02 03:09:34] [WARNING] Permission denied: user #7 (passenger) needed "locations.manage" at /modules/locations/index.php
+[2026-10-02 03:10:24] [WARNING] Permission denied: user #7 (passenger) needed "locations.manage" at /modules/locations/create.php
+[2026-10-02 03:17:37] [WARNING] Failed login attempt for "passenger@fleetra.test" from 127.0.0.1
+[2026-10-02 03:19:24] [WARNING] CSRF validation failed for /login.php
+[2026-10-02 03:19:25] [WARNING] CSRF validation failed for /login.php
+[2026-10-02 03:19:25] [WARNING] CSRF validation failed for /login.php
+[2026-10-02 03:21:15] [WARNING] Permission denied: user #7 (passenger) needed "locations.manage" at /modules/locations/index.php
+[2026-10-02 03:21:15] [WARNING] Permission denied: user #7 (passenger) needed "users.manage" at /modules/users/index.php
+[2026-10-02 03:21:15] [WARNING] Permission denied: user #7 (passenger) needed "settings.manage" at /modules/settings/index.php
+[2026-10-02 03:21:16] [WARNING] Permission denied: user #4 (driver) needed "users.manage" at /modules/users/index.php
+[2026-10-02 03:21:17] [WARNING] Permission denied: user #2 (manager) needed "locations.manage" at /modules/locations/index.php
+[2026-10-02 03:21:17] [WARNING] Permission denied: user #2 (manager) needed "settings.manage" at /modules/settings/index.php
+[2026-10-02 03:21:17] [WARNING] Permission denied: user #2 (manager) needed "users.manage" at /modules/users/index.php
+[2026-10-02 03:23:44] [WARNING] Permission denied: user #7 tried to download ticket TKT-0002
+[2026-10-02 03:24:41] [WARNING] Permission denied: user #7 tried to open ticket TKT-0002

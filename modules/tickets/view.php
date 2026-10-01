@@ -50,8 +50,13 @@ $status      = (string) $ticket['ticket_status'];
  | Status actions (staff only)
  -------------------------------------------------------------- */
 
+$pdfUrl = url('modules/tickets/pdf.php?ticket=' . urlencode($ticketNumber) . '&download=1');
+
 $actions = '<a class="btn btn-outline-secondary" href="' . e(url('modules/tickets/index.php')) . '">
                 <i class="bi bi-arrow-left" aria-hidden="true"></i> Tickets
+            </a>
+            <a class="btn btn-outline-secondary" href="' . e($pdfUrl) . '">
+                <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download PDF
             </a>
             <button type="button" class="btn btn-primary" data-print>
                 <i class="bi bi-printer" aria-hidden="true"></i> Print ticket
@@ -218,6 +223,12 @@ require __DIR__ . '/../../includes/header.php';
     </a>
     <a class="btn btn-outline-secondary" href="<?= e(url('modules/tickets/index.php')) ?>">
         <i class="bi bi-ticket-perforated" aria-hidden="true"></i> All tickets
+    </a>
+    <a class="btn btn-outline-secondary" href="<?= e(url('modules/tickets/pdf.php?ticket=' . urlencode($ticketNumber))) ?>">
+        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> View PDF
+    </a>
+    <a class="btn btn-primary" href="<?= e(url('modules/tickets/pdf.php?ticket=' . urlencode($ticketNumber) . '&download=1')) ?>">
+        <i class="bi bi-download" aria-hidden="true"></i> Download PDF
     </a>
 </div>
 

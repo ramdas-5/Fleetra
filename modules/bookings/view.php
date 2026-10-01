@@ -75,6 +75,10 @@ if ($booking['ticket_number'] !== null) {
         . e(url('modules/tickets/view.php?ticket=' . urlencode((string) $booking['ticket_number']))) . '">
             <i class="bi bi-ticket-perforated" aria-hidden="true"></i> Open ticket
         </a>';
+    $actions .= '<a class="btn btn-outline-secondary" href="'
+        . e(url('modules/tickets/pdf.php?ticket=' . urlencode((string) $booking['ticket_number']) . '&download=1')) . '">
+            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Ticket PDF
+        </a>';
 }
 
 $actions .= $cancelForm;
@@ -282,10 +286,16 @@ require __DIR__ . '/../../includes/header.php';
                         </li>
                     </ul>
 
-                    <a class="btn btn-primary w-100 mt-3"
-                       href="<?= e(url('modules/tickets/view.php?ticket=' . urlencode((string) $booking['ticket_number']))) ?>">
-                        <i class="bi bi-printer" aria-hidden="true"></i> View &amp; print ticket
-                    </a>
+                    <div class="d-grid gap-2 mt-3">
+                        <a class="btn btn-primary"
+                           href="<?= e(url('modules/tickets/view.php?ticket=' . urlencode((string) $booking['ticket_number']))) ?>">
+                            <i class="bi bi-printer" aria-hidden="true"></i> View &amp; print ticket
+                        </a>
+                        <a class="btn btn-outline-secondary"
+                           href="<?= e(url('modules/tickets/pdf.php?ticket=' . urlencode((string) $booking['ticket_number']) . '&download=1')) ?>">
+                            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download ticket PDF
+                        </a>
+                    </div>
                 </div>
             <?php endif; ?>
         </div>

@@ -242,8 +242,6 @@ function capability_labels(): array
         'bookings.cancel'        => 'Cancel their own bookings',
         'tickets.own'            => 'Download their own tickets',
         'passengers.view'        => 'View the passenger register',
-        'tracking.view'          => 'Follow live bus locations',
-        'tracking.update'        => 'Send their bus location while driving',
         'maintenance.*'          => 'Log and schedule vehicle maintenance',
         'maintenance.report'     => 'Report a vehicle fault',
         'incidents.view'         => 'View reported incidents',

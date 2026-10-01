@@ -118,32 +118,6 @@ function settings_schema(): array
             ],
         ],
 
-        'tracking' => [
-            'label'       => 'Live tracking',
-            'description' => 'Where positions come from and how often the map refreshes.',
-            'icon'        => 'bi-broadcast-pin',
-            'fields'      => [
-                'tracking_source' => [
-                    'label'   => 'Tracking source',
-                    'type'    => 'select',
-                    'help'    => 'A local install has no GPS hardware, so the demo simulation is used unless real devices are posting.',
-                    'options' => [
-                        'simulated' => 'Simulated demo (no GPS hardware)',
-                        'device'    => 'Real device fixes',
-                    ],
-                    'rules' => ['required'],
-                ],
-                'tracking_refresh_seconds' => [
-                    'label' => 'Map refresh interval (seconds)',
-                    'type'  => 'number',
-                    'help'  => 'How often the live map polls for new positions.',
-                    'min'   => 5,
-                    'max'   => 120,
-                    'rules' => ['required', 'int', 'min:5', 'max:120'],
-                ],
-            ],
-        ],
-
         'notifications' => [
             'label'       => 'Notifications',
             'description' => 'Extra delivery channels for Fleetra messages.',

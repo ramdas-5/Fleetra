@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------
  * dispatcher/dashboard.php — Daily operations board
  *
- * The dispatcher works from a single live board: what is on the road,
+ * The dispatcher works from a single board: what is on the road,
  * what is delayed and what needs a decision.
  */
 
@@ -41,8 +41,7 @@ $liveBoard = db_all(
             s.departure_time, s.arrival_time,
             b.bus_number, b.capacity, b.registration_number,
             u.name AS driver_name, u.phone AS driver_phone,
-            r.route_code, r.route_name, r.source, r.destination,
-            (SELECT ROUND(AVG(speed), 0) FROM bus_locations bl WHERE bl.trip_id = t.id) AS avg_speed
+            r.route_code, r.route_name, r.source, r.destination
        FROM trips t
        JOIN schedules s ON s.id = t.schedule_id
        JOIN buses b     ON b.id = t.bus_id
@@ -125,7 +124,6 @@ require __DIR__ . '/../includes/header.php';
                         <th>Driver</th>
                         <th>Departure</th>
                         <th>Load</th>
-                        <th>Speed</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -154,9 +152,6 @@ require __DIR__ . '/../includes/header.php';
                                 <span class="cell-muted">arr. <?= e(format_time($trip['arrival_time'])) ?></span>
                             </td>
                             <td class="cell-num"><?= (int) $trip['passenger_count'] ?> / <?= (int) $trip['capacity'] ?></td>
-                            <td class="cell-num">
-                                <?= $trip['avg_speed'] !== null ? (int) $trip['avg_speed'] . ' km/h' : '—' ?>
-                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

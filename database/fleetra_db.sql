@@ -46,7 +46,6 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS activity_logs;
 DROP TABLE IF EXISTS incidents;
 DROP TABLE IF EXISTS notifications;
-DROP TABLE IF EXISTS bus_locations;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS tickets;
 DROP TABLE IF EXISTS bookings;
@@ -189,19 +188,26 @@ CREATE TABLE stops (
 -- =====================================================================
 CREATE TABLE locations (
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    name          VARCHAR(160) NOT NULL COMMENT 'Terminal / stand / stop / landmark name',
+    name          VARCHAR(180) NOT NULL COMMENT 'Terminal / stand / stop / landmark name',
     city          VARCHAR(120) NOT NULL,
+    district      VARCHAR(120) DEFAULT NULL,
     state         VARCHAR(120) NOT NULL COMMENT 'State or union territory',
+    state_code    VARCHAR(4)   DEFAULT NULL COMMENT 'ISO 3166-2:IN subdivision code, e.g. WB',
     location_type ENUM('terminal','bus_stand','bus_stop','landmark','city') NOT NULL DEFAULT 'bus_stop',
-    latitude      DECIMAL(10,7) DEFAULT NULL,
+    latitude      DECIMAL(10,7) DEFAULT NULL COMMENT 'Approximate city/terminal centroid (public reference)',
     longitude     DECIMAL(10,7) DEFAULT NULL,
-    is_verified   TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1 = curated from public transport reference data',
+    pincode       VARCHAR(12)  DEFAULT NULL,
+    aliases       VARCHAR(240) DEFAULT NULL COMMENT 'Alternate/former names, e.g. Bangalore, Calcutta',
+    is_verified   TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1 = curated name/city from public transport reference data',
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    search_text   VARCHAR(420) GENERATED ALWAYS AS (LOWER(CONCAT(city, ' ', name, ' ', state))) STORED,
+    search_text   VARCHAR(640) GENERATED ALWAYS AS (
+        LOWER(CONCAT(city, ' ', name, ' ', COALESCE(district, ''), ' ', COALESCE(aliases, ''), ' ', state, ' ', COALESCE(state_code, '')))
+    ) STORED,
     PRIMARY KEY (id),
     UNIQUE KEY uq_locations_key (city, name, state),
     KEY idx_locations_search (search_text),
     KEY idx_locations_city (city),
+    KEY idx_locations_district (district),
     KEY idx_locations_state (state),
     KEY idx_locations_type (location_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -339,28 +345,7 @@ CREATE TABLE payments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================================
--- 11. bus_locations — GPS breadcrumb trail (simulated or real device)
--- =====================================================================
-CREATE TABLE bus_locations (
-    id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    bus_id      INT UNSIGNED NOT NULL,
-    trip_id     INT UNSIGNED DEFAULT NULL,
-    latitude    DECIMAL(10,7) NOT NULL,
-    longitude   DECIMAL(10,7) NOT NULL,
-    speed       DECIMAL(6,2) NOT NULL DEFAULT 0.00 COMMENT 'km/h',
-    heading     SMALLINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Degrees, 0-359',
-    source      ENUM('simulated','device') NOT NULL DEFAULT 'simulated'
-                COMMENT 'Keeps demo tracking clearly separated from real GPS hardware',
-    recorded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    KEY idx_locations_bus_time (bus_id, recorded_at),
-    KEY idx_locations_trip (trip_id),
-    CONSTRAINT fk_locations_bus  FOREIGN KEY (bus_id)  REFERENCES buses (id) ON DELETE CASCADE,
-    CONSTRAINT fk_locations_trip FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================================
--- 12. maintenance — workshop and servicing records
+-- 11. maintenance — workshop and servicing records
 -- =====================================================================
 CREATE TABLE maintenance (
     id                INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -815,6 +800,222 @@ INSERT INTO locations (name, city, state, location_type, latitude, longitude) VA
 ('Daman Bus Stand', 'Daman', 'Dadra and Nagar Haveli and Daman and Diu', 'bus_stand', 20.3974000, 72.8328000),
 ('Diu Bus Stand', 'Diu', 'Dadra and Nagar Haveli and Daman and Diu', 'bus_stand', 20.7144000, 70.9874000);
 
+-- State / UT codes (ISO 3166-2:IN) for the rows above.
+UPDATE locations SET state_code = CASE state
+    WHEN 'Andhra Pradesh' THEN 'AP' WHEN 'Arunachal Pradesh' THEN 'AR' WHEN 'Assam' THEN 'AS'
+    WHEN 'Bihar' THEN 'BR' WHEN 'Chhattisgarh' THEN 'CG' WHEN 'Goa' THEN 'GA'
+    WHEN 'Gujarat' THEN 'GJ' WHEN 'Haryana' THEN 'HR' WHEN 'Himachal Pradesh' THEN 'HP'
+    WHEN 'Jharkhand' THEN 'JH' WHEN 'Karnataka' THEN 'KA' WHEN 'Kerala' THEN 'KL'
+    WHEN 'Madhya Pradesh' THEN 'MP' WHEN 'Maharashtra' THEN 'MH' WHEN 'Manipur' THEN 'MN'
+    WHEN 'Meghalaya' THEN 'ML' WHEN 'Mizoram' THEN 'MZ' WHEN 'Nagaland' THEN 'NL'
+    WHEN 'Odisha' THEN 'OD' WHEN 'Punjab' THEN 'PB' WHEN 'Rajasthan' THEN 'RJ'
+    WHEN 'Sikkim' THEN 'SK' WHEN 'Tamil Nadu' THEN 'TN' WHEN 'Telangana' THEN 'TS'
+    WHEN 'Tripura' THEN 'TR' WHEN 'Uttar Pradesh' THEN 'UP' WHEN 'Uttarakhand' THEN 'UK'
+    WHEN 'West Bengal' THEN 'WB' WHEN 'Delhi' THEN 'DL' WHEN 'Jammu and Kashmir' THEN 'JK'
+    WHEN 'Ladakh' THEN 'LA' WHEN 'Chandigarh' THEN 'CH' WHEN 'Puducherry' THEN 'PY'
+    WHEN 'Andaman and Nicobar Islands' THEN 'AN' WHEN 'Lakshadweep' THEN 'LD'
+    WHEN 'Dadra and Nagar Haveli and Daman and Diu' THEN 'DN' ELSE state_code END
+WHERE state_code IS NULL;
+
+-- Alternate and former names so a common name still finds the right place.
+UPDATE locations SET aliases = 'Bangalore' WHERE city = 'Bengaluru' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Mysore' WHERE city = 'Mysuru' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Mangalore' WHERE city = 'Mangaluru' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Hubli' WHERE city = 'Hubballi' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Belgaum' WHERE city = 'Belagavi' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Gulbarga' WHERE city = 'Kalaburagi' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Bijapur' WHERE city = 'Vijayapura' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Shimoga' WHERE city = 'Shivamogga' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Bellary' WHERE city = 'Ballari' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Bombay' WHERE city = 'Mumbai' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Calcutta' WHERE city = 'Kolkata' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Madras' WHERE city = 'Chennai' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Trivandrum' WHERE city = 'Thiruvananthapuram' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Cochin, Ernakulam' WHERE city = 'Kochi' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Calicut' WHERE city = 'Kozhikode' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Trichy' WHERE city = 'Tiruchirappalli' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Allahabad' WHERE city = 'Prayagraj' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Bombay, Aurangabad' WHERE city = 'Aurangabad' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Vizag' WHERE city = 'Visakhapatnam' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Varanasi, Benares, Banaras' WHERE city = 'Varanasi' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Pondicherry' WHERE city = 'Puducherry' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Gurgaon' WHERE city = 'Gurugram' AND aliases IS NULL;
+UPDATE locations SET aliases = 'Trivandrum' WHERE city = 'Thiruvananthapuram' AND aliases IS NULL;
+
+-- =====================================================================
+-- 5c. locations — wider coverage (major towns & regional transport hubs)
+--     Names/places are real public locations; coordinates are approximate
+--     city/terminal centroids for search and map centring.
+-- =====================================================================
+INSERT IGNORE INTO locations (name, city, district, state, state_code, location_type, latitude, longitude, aliases) VALUES
+-- West Bengal (state_code WB)
+('Esplanade Bus Terminus', 'Kolkata', 'Kolkata', 'West Bengal', 'WB', 'terminal', 22.5600000, 88.3510000, 'Calcutta, Esplanade'),
+('Babughat Bus Terminus', 'Kolkata', 'Kolkata', 'West Bengal', 'WB', 'terminal', 22.5568000, 88.3407000, 'Babu Ghat'),
+('Karunamoyee Bus Stand', 'Kolkata', 'Kolkata', 'West Bengal', 'WB', 'bus_stand', 22.5867000, 88.4170000, 'Salt Lake, Bidhannagar'),
+('Behala Chowrasta Bus Stand', 'Kolkata', 'Kolkata', 'West Bengal', 'WB', 'bus_stand', 22.4980000, 88.3180000, 'Behala'),
+('Garia Bus Stand', 'Kolkata', 'Kolkata', 'West Bengal', 'WB', 'bus_stand', 22.4650000, 88.3760000, 'Garia'),
+('Shyambazar Bus Stand', 'Kolkata', 'Kolkata', 'West Bengal', 'WB', 'bus_stand', 22.5960000, 88.3690000, 'Shyambazar'),
+('Howrah Station Bus Stand', 'Howrah', 'Howrah', 'West Bengal', 'WB', 'bus_stand', 22.5840000, 88.3420000, 'Howrah Junction'),
+('Krishnanagar Bus Stand', 'Krishnanagar', 'Nadia', 'West Bengal', 'WB', 'bus_stand', 23.4000000, 88.5000000, 'Krishnagar'),
+('Nabadwip Bus Stand', 'Nabadwip', 'Nadia', 'West Bengal', 'WB', 'bus_stand', 23.4100000, 88.3700000, 'Navadvip'),
+('Ranaghat Bus Stand', 'Ranaghat', 'Nadia', 'West Bengal', 'WB', 'bus_stand', 23.1800000, 88.5800000, NULL),
+('Chinsurah Bus Stand', 'Chinsurah', 'Hooghly', 'West Bengal', 'WB', 'bus_stand', 22.9000000, 88.3900000, 'Chunchura'),
+('Chandannagar Bus Stand', 'Chandannagar', 'Hooghly', 'West Bengal', 'WB', 'bus_stand', 22.8700000, 88.3800000, 'Chandanagar'),
+('Serampore Bus Stand', 'Serampore', 'Hooghly', 'West Bengal', 'WB', 'bus_stand', 22.7500000, 88.3400000, 'Srirampur'),
+('Arambagh Bus Stand', 'Arambagh', 'Hooghly', 'West Bengal', 'WB', 'bus_stand', 22.8800000, 87.7800000, 'Arambag'),
+('Tarakeswar Bus Stand', 'Tarakeswar', 'Hooghly', 'West Bengal', 'WB', 'bus_stand', 22.8900000, 88.0200000, 'Tarakeshwar'),
+('Barasat Bus Stand', 'Barasat', 'North 24 Parganas', 'West Bengal', 'WB', 'bus_stand', 22.7200000, 88.4800000, NULL),
+('Barrackpore Bus Stand', 'Barrackpore', 'North 24 Parganas', 'West Bengal', 'WB', 'bus_stand', 22.7600000, 88.3700000, 'Barrackpur'),
+('Basirhat Bus Stand', 'Basirhat', 'North 24 Parganas', 'West Bengal', 'WB', 'bus_stand', 22.6600000, 88.8900000, NULL),
+('Bongaon Bus Stand', 'Bongaon', 'North 24 Parganas', 'West Bengal', 'WB', 'bus_stand', 23.0700000, 88.8200000, 'Bangaon'),
+('Baruipur Bus Stand', 'Baruipur', 'South 24 Parganas', 'West Bengal', 'WB', 'bus_stand', 22.3600000, 88.4300000, NULL),
+('Diamond Harbour Bus Stand', 'Diamond Harbour', 'South 24 Parganas', 'West Bengal', 'WB', 'bus_stand', 22.1900000, 88.1900000, NULL),
+('Kakdwip Bus Stand', 'Kakdwip', 'South 24 Parganas', 'West Bengal', 'WB', 'bus_stand', 21.8800000, 88.1900000, NULL),
+('Jalpaiguri Bus Stand', 'Jalpaiguri', 'Jalpaiguri', 'West Bengal', 'WB', 'bus_stand', 26.5200000, 88.7200000, NULL),
+('Alipurduar Bus Stand', 'Alipurduar', 'Alipurduar', 'West Bengal', 'WB', 'bus_stand', 26.4900000, 89.5300000, NULL),
+('Balurghat Bus Stand', 'Balurghat', 'Dakshin Dinajpur', 'West Bengal', 'WB', 'bus_stand', 25.2200000, 88.7600000, NULL),
+('Raiganj Bus Stand', 'Raiganj', 'Uttar Dinajpur', 'West Bengal', 'WB', 'bus_stand', 25.6200000, 88.1200000, NULL),
+('Bankura Bus Stand', 'Bankura', 'Bankura', 'West Bengal', 'WB', 'bus_stand', 23.2300000, 87.0700000, NULL),
+('Purulia Bus Stand', 'Purulia', 'Purulia', 'West Bengal', 'WB', 'bus_stand', 23.3300000, 86.3600000, 'Puruliya'),
+('Suri Bus Stand', 'Suri', 'Birbhum', 'West Bengal', 'WB', 'bus_stand', 23.9100000, 87.5300000, 'Siuri'),
+('Bolpur Bus Stand', 'Bolpur', 'Birbhum', 'West Bengal', 'WB', 'bus_stand', 23.6700000, 87.6800000, 'Santiniketan'),
+('Rampurhat Bus Stand', 'Rampurhat', 'Birbhum', 'West Bengal', 'WB', 'bus_stand', 24.1700000, 87.7800000, NULL),
+('Katwa Bus Stand', 'Katwa', 'Purba Bardhaman', 'West Bengal', 'WB', 'bus_stand', 23.6500000, 88.1300000, NULL),
+('Kalna Bus Stand', 'Kalna', 'Purba Bardhaman', 'West Bengal', 'WB', 'bus_stand', 23.2200000, 88.3600000, 'Ambika Kalna'),
+('Ranigunj Bus Stand', 'Asansol', 'Paschim Bardhaman', 'West Bengal', 'WB', 'bus_stand', 23.6900000, 86.9700000, 'Raniganj'),
+('Tamluk Bus Stand', 'Tamluk', 'Purba Medinipur', 'West Bengal', 'WB', 'bus_stand', 22.2900000, 87.9200000, NULL),
+('Contai Bus Stand', 'Contai', 'Purba Medinipur', 'West Bengal', 'WB', 'bus_stand', 21.7800000, 87.7500000, 'Kanthi'),
+('Ghatal Bus Stand', 'Ghatal', 'Paschim Medinipur', 'West Bengal', 'WB', 'bus_stand', 22.6700000, 87.7400000, NULL),
+('Jhargram Bus Stand', 'Jhargram', 'Jhargram', 'West Bengal', 'WB', 'bus_stand', 22.4500000, 86.9800000, NULL),
+('Kharagpur Bus Stand', 'Kharagpur', 'Paschim Medinipur', 'West Bengal', 'WB', 'bus_stand', 22.3460000, 87.2320000, 'KGP'),
+('Malda Bus Stand', 'Malda', 'Malda', 'West Bengal', 'WB', 'bus_stand', 25.0119000, 88.1433000, 'English Bazar'),
+-- Karnataka
+('Shivajinagar Bus Station', 'Bengaluru', 'Bengaluru Urban', 'Karnataka', 'KA', 'terminal', 12.9856000, 77.6053000, 'Bangalore Shivajinagar'),
+('Satellite Bus Stand', 'Bengaluru', 'Bengaluru Urban', 'Karnataka', 'KA', 'terminal', 12.9580000, 77.5340000, 'BSNL, Mysore Road'),
+('KSRTC Bus Stand Mysuru', 'Mysuru', 'Mysuru', 'Karnataka', 'KA', 'terminal', 12.3160000, 76.6400000, 'Mysore KSRTC'),
+('Hassan Bus Stand', 'Hassan', 'Hassan', 'Karnataka', 'KA', 'bus_stand', 13.0068000, 76.0996000, NULL),
+('Mandya Bus Stand', 'Mandya', 'Mandya', 'Karnataka', 'KA', 'bus_stand', 12.5223000, 76.8954000, NULL),
+('Chikkamagaluru Bus Stand', 'Chikkamagaluru', 'Chikkamagaluru', 'Karnataka', 'KA', 'bus_stand', 13.3161000, 75.7754000, 'Chikmagalur'),
+('Udupi KSRTC Bus Stand', 'Udupi', 'Udupi', 'Karnataka', 'KA', 'bus_stand', 13.3409000, 74.7460000, NULL),
+('Karwar Bus Stand', 'Karwar', 'Uttara Kannada', 'Karnataka', 'KA', 'bus_stand', 14.8135000, 74.1297000, NULL),
+-- Andhra Pradesh
+('Vizianagaram Bus Stand', 'Vizianagaram', 'Vizianagaram', 'Andhra Pradesh', 'AP', 'bus_stand', 18.1067000, 83.3956000, NULL),
+('Srikakulam Bus Stand', 'Srikakulam', 'Srikakulam', 'Andhra Pradesh', 'AP', 'bus_stand', 18.3000000, 83.9000000, NULL),
+('Ongole Bus Stand', 'Ongole', 'Prakasam', 'Andhra Pradesh', 'AP', 'bus_stand', 15.5057000, 80.0499000, NULL),
+('Chittoor Bus Stand', 'Chittoor', 'Chittoor', 'Andhra Pradesh', 'AP', 'bus_stand', 13.2172000, 79.1003000, NULL),
+('Eluru Bus Stand', 'Eluru', 'West Godavari', 'Andhra Pradesh', 'AP', 'bus_stand', 16.7107000, 81.1036000, NULL),
+('Machilipatnam Bus Stand', 'Machilipatnam', 'Krishna', 'Andhra Pradesh', 'AP', 'bus_stand', 16.1875000, 81.1389000, NULL),
+-- Telangana
+('Secunderabad Bus Station', 'Hyderabad', 'Hyderabad', 'Telangana', 'TS', 'terminal', 17.4399000, 78.4983000, 'Secunderabad'),
+('Kukatpally Bus Stand', 'Hyderabad', 'Medchal-Malkajgiri', 'Telangana', 'TS', 'bus_stand', 17.4948000, 78.3996000, 'KPHB'),
+('Adilabad Bus Stand', 'Adilabad', 'Adilabad', 'Telangana', 'TS', 'bus_stand', 19.6640000, 78.5320000, NULL),
+('Siddipet Bus Stand', 'Siddipet', 'Siddipet', 'Telangana', 'TS', 'bus_stand', 18.1018000, 78.8520000, NULL),
+-- Tamil Nadu
+('Koyambedu CMBT', 'Chennai', 'Chennai', 'Tamil Nadu', 'TN', 'terminal', 13.0700000, 80.1948000, 'CMBT'),
+('Tambaram Bus Stand', 'Chennai', 'Chennai', 'Tamil Nadu', 'TN', 'bus_stand', 12.9249000, 80.1275000, NULL),
+('T Nagar Bus Stand', 'Chennai', 'Chennai', 'Tamil Nadu', 'TN', 'bus_stand', 13.0418000, 80.2341000, 'Thyagaraya Nagar'),
+('Pondicherry Road Bus Stand', 'Villupuram', 'Villupuram', 'Tamil Nadu', 'TN', 'bus_stand', 11.9401000, 79.4860000, NULL),
+('Karur Bus Stand', 'Karur', 'Karur', 'Tamil Nadu', 'TN', 'bus_stand', 10.9601000, 78.0766000, NULL),
+('Dindigul Bus Stand', 'Dindigul', 'Dindigul', 'Tamil Nadu', 'TN', 'bus_stand', 10.3673000, 77.9803000, NULL),
+('Cuddalore Bus Stand', 'Cuddalore', 'Cuddalore', 'Tamil Nadu', 'TN', 'bus_stand', 11.7480000, 79.7714000, NULL),
+-- Kerala
+('Kollam KSRTC Bus Station', 'Kollam', 'Kollam', 'Kerala', 'KL', 'terminal', 8.8870000, 76.5930000, NULL),
+('Kozhikode KSRTC Bus Stand', 'Kozhikode', 'Kozhikode', 'Kerala', 'KL', 'terminal', 11.2470000, 75.7820000, 'Calicut KSRTC'),
+('Kannur KSRTC Bus Stand', 'Kannur', 'Kannur', 'Kerala', 'KL', 'bus_stand', 11.8745000, 75.3704000, NULL),
+('Chalakudy Bus Stand', 'Chalakudy', 'Thrissur', 'Kerala', 'KL', 'bus_stand', 10.3034000, 76.3355000, NULL),
+-- Maharashtra
+('Dadar TT Bus Depot', 'Mumbai', 'Mumbai', 'Maharashtra', 'MH', 'terminal', 19.0186000, 72.8440000, 'Dadar'),
+('Borivali Bus Station', 'Mumbai', 'Mumbai Suburban', 'Maharashtra', 'MH', 'terminal', 19.2307000, 72.8567000, NULL),
+('Pune Station Bus Stand', 'Pune', 'Pune', 'Maharashtra', 'MH', 'bus_stand', 18.5250000, 73.8740000, 'Pune Railway Station'),
+('Katraj Bus Stand', 'Pune', 'Pune', 'Maharashtra', 'MH', 'bus_stand', 18.4529000, 73.8560000, NULL),
+('Kothrud Bus Depot', 'Pune', 'Pune', 'Maharashtra', 'MH', 'bus_stand', 18.5074000, 73.8077000, NULL),
+('Panvel Bus Stand', 'Navi Mumbai', 'Raigad', 'Maharashtra', 'MH', 'bus_stand', 18.9894000, 73.1175000, NULL),
+('Kalyan Bus Stand', 'Kalyan', 'Thane', 'Maharashtra', 'MH', 'bus_stand', 19.2437000, 73.1355000, NULL),
+('Ambernath Bus Stand', 'Ambernath', 'Thane', 'Maharashtra', 'MH', 'bus_stand', 19.1860000, 73.1920000, NULL),
+('Ichalkaranji Bus Stand', 'Ichalkaranji', 'Kolhapur', 'Maharashtra', 'MH', 'bus_stand', 16.6913000, 74.4606000, NULL),
+-- Gujarat
+('Pal Di Bus Stand', 'Ahmedabad', 'Ahmedabad', 'Gujarat', 'GJ', 'bus_stand', 23.0063000, 72.5730000, 'Paldi'),
+('Kalupur Bus Stand', 'Ahmedabad', 'Ahmedabad', 'Gujarat', 'GJ', 'bus_stand', 23.0276000, 72.5997000, NULL),
+('Adajan Bus Stand', 'Surat', 'Surat', 'Gujarat', 'GJ', 'bus_stand', 21.1938000, 72.7933000, NULL),
+('Ankleshwar Bus Stand', 'Ankleshwar', 'Bharuch', 'Gujarat', 'GJ', 'bus_stand', 21.6266000, 72.9890000, NULL),
+('Godhra Bus Stand', 'Godhra', 'Panchmahal', 'Gujarat', 'GJ', 'bus_stand', 22.7788000, 73.6143000, NULL),
+('Mehsana Bus Stand', 'Mehsana', 'Mehsana', 'Gujarat', 'GJ', 'bus_stand', 23.5880000, 72.3693000, NULL),
+('Veraval Bus Stand', 'Veraval', 'Gir Somnath', 'Gujarat', 'GJ', 'bus_stand', 20.9077000, 70.3665000, NULL),
+-- Rajasthan
+('Ajmer Road Bus Stand', 'Jaipur', 'Jaipur', 'Rajasthan', 'RJ', 'bus_stand', 26.8850000, 75.7600000, NULL),
+('Dausa Bus Stand', 'Dausa', 'Dausa', 'Rajasthan', 'RJ', 'bus_stand', 26.8857000, 76.3350000, NULL),
+('Tonk Bus Stand', 'Tonk', 'Tonk', 'Rajasthan', 'RJ', 'bus_stand', 26.1667000, 75.7833000, NULL),
+('Nagaur Bus Stand', 'Nagaur', 'Nagaur', 'Rajasthan', 'RJ', 'bus_stand', 27.2020000, 73.7339000, NULL),
+('Churu Bus Stand', 'Churu', 'Churu', 'Rajasthan', 'RJ', 'bus_stand', 28.3000000, 74.9700000, NULL),
+('Sriganganagar Bus Stand', 'Sri Ganganagar', 'Sri Ganganagar', 'Rajasthan', 'RJ', 'bus_stand', 29.9094000, 73.8801000, 'Ganganagar'),
+-- Uttar Pradesh
+('Civil Lines Bus Stand Bareilly', 'Bareilly', 'Bareilly', 'Uttar Pradesh', 'UP', 'bus_stand', 28.3640000, 79.4150000, NULL),
+('Kaiserbagh Bus Station', 'Lucknow', 'Lucknow', 'Uttar Pradesh', 'UP', 'terminal', 26.8500000, 80.9200000, 'Kaiserbagh'),
+('Charbagh Bus Stand', 'Lucknow', 'Lucknow', 'Uttar Pradesh', 'UP', 'bus_stand', 26.8310000, 80.9190000, NULL),
+('Fatehpur Bus Stand', 'Fatehpur', 'Fatehpur', 'Uttar Pradesh', 'UP', 'bus_stand', 25.9300000, 80.8100000, NULL),
+('Sultanpur Bus Stand', 'Sultanpur', 'Sultanpur', 'Uttar Pradesh', 'UP', 'bus_stand', 26.2648000, 82.0727000, NULL),
+('Rae Bareli Bus Stand', 'Rae Bareli', 'Rae Bareli', 'Uttar Pradesh', 'UP', 'bus_stand', 26.2300000, 81.2300000, 'Raebareli'),
+('Etawah Bus Stand', 'Etawah', 'Etawah', 'Uttar Pradesh', 'UP', 'bus_stand', 26.7850000, 79.0150000, NULL),
+('Bulandshahr Bus Stand', 'Bulandshahr', 'Bulandshahr', 'Uttar Pradesh', 'UP', 'bus_stand', 28.4000000, 77.8500000, NULL),
+-- Bihar
+('Patna Junction Bus Stand', 'Patna', 'Patna', 'Bihar', 'BR', 'bus_stand', 25.6020000, 85.1370000, NULL),
+('Barauni Bus Stand', 'Begusarai', 'Begusarai', 'Bihar', 'BR', 'bus_stand', 25.4200000, 86.1300000, NULL),
+('Saharsa Bus Stand', 'Saharsa', 'Saharsa', 'Bihar', 'BR', 'bus_stand', 25.8800000, 86.6000000, NULL),
+('Chapra Bus Stand', 'Chapra', 'Saran', 'Bihar', 'BR', 'bus_stand', 25.7800000, 84.7500000, 'Chhapra'),
+('Motihari Bus Stand', 'Motihari', 'East Champaran', 'Bihar', 'BR', 'bus_stand', 26.6500000, 84.9200000, NULL),
+-- Jharkhand
+('Ranchi Bus Stand', 'Ranchi', 'Ranchi', 'Jharkhand', 'JH', 'bus_stand', 23.3600000, 85.3300000, NULL),
+('Giridih Bus Stand', 'Giridih', 'Giridih', 'Jharkhand', 'JH', 'bus_stand', 24.1800000, 86.3000000, NULL),
+('Ramgarh Bus Stand', 'Ramgarh', 'Ramgarh', 'Jharkhand', 'JH', 'bus_stand', 23.6300000, 85.5200000, NULL),
+-- Odisha
+('Bhubaneswar Bus Stand', 'Bhubaneswar', 'Khordha', 'Odisha', 'OD', 'bus_stand', 20.2700000, 85.8400000, NULL),
+('Angul Bus Stand', 'Angul', 'Angul', 'Odisha', 'OD', 'bus_stand', 20.8400000, 85.1000000, NULL),
+('Jharsuguda Bus Stand', 'Jharsuguda', 'Jharsuguda', 'Odisha', 'OD', 'bus_stand', 21.8500000, 84.0300000, NULL),
+('Rayagada Bus Stand', 'Rayagada', 'Rayagada', 'Odisha', 'OD', 'bus_stand', 19.1700000, 83.4200000, NULL),
+-- Madhya Pradesh
+('Indore Sarwate Bus Stand', 'Indore', 'Indore', 'Madhya Pradesh', 'MP', 'terminal', 22.7196000, 75.8577000, 'Sarwate'),
+('Bhopal Bus Stand', 'Bhopal', 'Bhopal', 'Madhya Pradesh', 'MP', 'bus_stand', 23.2300000, 77.4000000, NULL),
+('Gwalior Bus Stand', 'Gwalior', 'Gwalior', 'Madhya Pradesh', 'MP', 'bus_stand', 26.2150000, 78.1750000, NULL),
+('Khandwa Bus Stand', 'Khandwa', 'Khandwa', 'Madhya Pradesh', 'MP', 'bus_stand', 21.8200000, 76.3500000, NULL),
+('Burhanpur Bus Stand', 'Burhanpur', 'Burhanpur', 'Madhya Pradesh', 'MP', 'bus_stand', 21.3100000, 76.2300000, NULL),
+-- Chhattisgarh
+('Bilaspur Bus Stand', 'Bilaspur', 'Bilaspur', 'Chhattisgarh', 'CG', 'bus_stand', 22.0900000, 82.1500000, NULL),
+('Korba Bus Stand', 'Korba', 'Korba', 'Chhattisgarh', 'CG', 'bus_stand', 22.3500000, 82.7000000, NULL),
+('Rajnandgaon Bus Stand', 'Rajnandgaon', 'Rajnandgaon', 'Chhattisgarh', 'CG', 'bus_stand', 21.1000000, 81.0300000, NULL),
+-- Uttarakhand
+('Rudrapur Bus Station', 'Rudrapur', 'Udham Singh Nagar', 'Uttarakhand', 'UK', 'bus_stand', 28.9800000, 79.4000000, NULL),
+('Kotdwar Bus Stand', 'Kotdwar', 'Pauri Garhwal', 'Uttarakhand', 'UK', 'bus_stand', 29.7400000, 78.5300000, NULL),
+('Pithoragarh Bus Stand', 'Pithoragarh', 'Pithoragarh', 'Uttarakhand', 'UK', 'bus_stand', 29.5800000, 80.2200000, NULL),
+-- Himachal Pradesh
+('Kangra Bus Stand', 'Kangra', 'Kangra', 'Himachal Pradesh', 'HP', 'bus_stand', 32.1000000, 76.2700000, NULL),
+('Chamba Bus Stand', 'Chamba', 'Chamba', 'Himachal Pradesh', 'HP', 'bus_stand', 32.5500000, 76.1300000, NULL),
+('Keylong Bus Stand', 'Keylong', 'Lahaul and Spiti', 'Himachal Pradesh', 'HP', 'bus_stand', 32.5800000, 77.0300000, NULL),
+-- Punjab
+('Batala Bus Stand', 'Batala', 'Gurdaspur', 'Punjab', 'PB', 'bus_stand', 31.8100000, 75.2000000, NULL),
+('Ferozepur Bus Stand', 'Ferozepur', 'Ferozepur', 'Punjab', 'PB', 'bus_stand', 30.9300000, 74.6100000, 'Firozpur'),
+('Sangrur Bus Stand', 'Sangrur', 'Sangrur', 'Punjab', 'PB', 'bus_stand', 30.2400000, 75.8400000, NULL),
+-- Haryana
+('Rewari Bus Stand', 'Rewari', 'Rewari', 'Haryana', 'HR', 'bus_stand', 28.2000000, 76.6200000, NULL),
+('Kaithal Bus Stand', 'Kaithal', 'Kaithal', 'Haryana', 'HR', 'bus_stand', 29.8000000, 76.4000000, NULL),
+('Jind Bus Stand', 'Jind', 'Jind', 'Haryana', 'HR', 'bus_stand', 29.3200000, 76.3100000, NULL),
+-- Delhi
+('Mehrauli Bus Terminal', 'Delhi', 'South Delhi', 'Delhi', 'DL', 'bus_stand', 28.5200000, 77.1800000, NULL),
+('Rohini Bus Stand', 'Delhi', 'North West Delhi', 'Delhi', 'DL', 'bus_stand', 28.7400000, 77.1200000, NULL),
+-- Jammu and Kashmir
+('Anantnag Bus Stand', 'Anantnag', 'Anantnag', 'Jammu and Kashmir', 'JK', 'bus_stand', 33.7300000, 75.1500000, NULL),
+('Baramulla Bus Stand', 'Baramulla', 'Baramulla', 'Jammu and Kashmir', 'JK', 'bus_stand', 34.2000000, 74.3400000, NULL),
+-- Assam
+('Silchar Bus Stand', 'Silchar', 'Cachar', 'Assam', 'AS', 'bus_stand', 24.8300000, 92.7900000, NULL),
+('Bongaigaon Bus Stand', 'Bongaigaon', 'Bongaigaon', 'Assam', 'AS', 'bus_stand', 26.4800000, 90.5600000, NULL),
+('Tinsukia Bus Stand', 'Tinsukia', 'Tinsukia', 'Assam', 'AS', 'bus_stand', 27.4900000, 95.3600000, NULL),
+-- Others
+('Shillong ISBT', 'Shillong', 'East Khasi Hills', 'Meghalaya', 'ML', 'terminal', 25.5680000, 91.8830000, NULL),
+('Aizawl Bus Stand', 'Aizawl', 'Aizawl', 'Mizoram', 'MZ', 'bus_stand', 23.7300000, 92.7180000, NULL),
+('Imphal Bus Stand', 'Imphal', 'Imphal West', 'Manipur', 'MN', 'bus_stand', 24.8080000, 93.9380000, NULL),
+('Agartala Bus Stand', 'Agartala', 'West Tripura', 'Tripura', 'TR', 'bus_stand', 23.8360000, 91.2790000, NULL),
+('Gangtok SNT', 'Gangtok', 'Gangtok', 'Sikkim', 'SK', 'terminal', 27.3300000, 88.6130000, NULL),
+('Panaji KTC Bus Stand', 'Panaji', 'North Goa', 'Goa', 'GA', 'terminal', 15.4989000, 73.8278000, NULL);
+
 INSERT INTO schedules (id, route_id, bus_id, driver_id, schedule_date, departure_time, arrival_time, status) VALUES
 (1,  1, 1, 1, CURDATE(),                          '06:30:00', '09:45:00', 'scheduled'),
 (2,  1, 2, 2, CURDATE(),                          '14:00:00', '17:15:00', 'scheduled'),
@@ -920,16 +1121,6 @@ INSERT INTO payments (id, booking_id, transaction_reference, payment_method, amo
 (5, 6, 'TXN-2026-000105', 'upi',      150.00, 'paid',     NOW() - INTERVAL 2 DAY),
 (6, 7, 'TXN-2026-000106', 'simulated',380.00, 'refunded', NOW() - INTERVAL 5 DAY);
 
--- Simulated breadcrumbs (source = 'simulated'). Real GPS devices post the
--- same rows with source = 'device' once hardware is connected.
-INSERT INTO bus_locations (bus_id, trip_id, latitude, longitude, speed, heading, source, recorded_at) VALUES
-(1, 1, 12.9776000, 77.5714000,  0.00,  45, 'simulated', NOW() - INTERVAL 35 MINUTE),
-(1, 1, 12.9437000, 77.5202000, 42.50,  50, 'simulated', NOW() - INTERVAL 20 MINUTE),
-(1, 1, 12.8691000, 77.4412000, 58.20,  62, 'simulated', NOW() - INTERVAL 8 MINUTE),
-(2, 2, 12.7217000, 77.2800000, 55.40,  68, 'simulated', NOW() - INTERVAL 90 MINUTE),
-(2, 2, 12.6514000, 77.2065000, 51.10,  70, 'simulated', NOW() - INTERVAL 40 MINUTE),
-(3, 3, 13.3409000, 74.7421000,  0.00, 180, 'simulated', NOW() - INTERVAL 1 DAY);
-
 INSERT INTO maintenance (id, bus_id, maintenance_type, description, service_date, next_service_date, odometer_reading, cost, service_provider, status) VALUES
 (1, 1, 'routine',    'Full periodic service: engine oil, filters, coolant top-up and 40-point inspection.', DATE_SUB(CURDATE(), INTERVAL 20 DAY), DATE_ADD(CURDATE(), INTERVAL 10 DAY), 182000.00,  8500.00, 'Volvo Service Centre, Bengaluru', 'completed'),
 (2, 4, 'repair',     'Gearbox overhaul after reported vibration at highway speed. Vehicle held in workshop.', DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 28 DAY), 312000.00, 46500.00, 'Scania Authorised Workshop, Bengaluru', 'in_progress'),
@@ -973,8 +1164,6 @@ INSERT INTO settings (setting_key, setting_value, setting_group) VALUES
 ('booking_window_days',     '30',                           'booking'),
 ('cancellation_hours',      '4',                            'booking'),
 ('maintenance_warning_days','15',                           'maintenance'),
-('tracking_source',         'simulated',                    'tracking'),
-('tracking_refresh_seconds','15',                           'tracking'),
 ('sms_notifications',       '0',                            'notifications'),
 ('email_notifications',     '0',                            'notifications');
 

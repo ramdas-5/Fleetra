@@ -106,7 +106,7 @@ function search_locations(string $query, int $limit = 8): array
     $cityEq = $needle;
 
     $rows = db_all(
-        'SELECT id, name, city, state, location_type, latitude, longitude
+        'SELECT id, name, city, district, state, state_code, location_type, latitude, longitude, aliases
            FROM locations
           WHERE search_text LIKE ?
              OR search_text LIKE ?
@@ -116,12 +116,13 @@ function search_locations(string $query, int $limit = 8): array
                 WHEN LOWER(city) = ? THEN 0
                 WHEN LOWER(city) LIKE ? THEN 1
                 WHEN LOWER(name) LIKE ? THEN 2
-                WHEN search_text LIKE ? THEN 3
-                ELSE 4
+                WHEN aliases IS NOT NULL AND LOWER(aliases) LIKE ? THEN 3
+                WHEN search_text LIKE ? THEN 4
+                ELSE 5
              END,
              city ASC, name ASC
           LIMIT ' . $limit,
-        [$prefix, $any, $cityEq, $cityEq, $prefix, $prefix, $prefix]
+        [$prefix, $any, $cityEq, $cityEq, $prefix, $prefix, $prefix, $prefix]
     );
 
     return $rows;
@@ -139,7 +140,7 @@ function find_location(int $id): ?array
     }
 
     return db_one(
-        'SELECT id, name, city, state, location_type, latitude, longitude
+        'SELECT id, name, city, district, state, state_code, location_type, latitude, longitude, aliases, pincode
            FROM locations WHERE id = ? LIMIT 1',
         [$id]
     );
@@ -164,7 +165,7 @@ function nearest_location(float $latitude, float $longitude, float $radiusKm = 6
     $lngDelta = $radiusKm / max(1.0, 111.0 * cos(deg2rad($latitude)));
 
     $candidates = db_all(
-        'SELECT id, name, city, state, location_type, latitude, longitude
+        'SELECT id, name, city, district, state, state_code, location_type, latitude, longitude
            FROM locations
           WHERE latitude BETWEEN ? AND ?
             AND longitude BETWEEN ? AND ?

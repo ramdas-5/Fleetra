@@ -28,7 +28,7 @@ $auth_aside_text  = $auth_aside_text  ?? 'Fleetra brings buses, drivers, schedul
 $auth_page_title  = ($auth_page_title ?? $auth_heading) . ' · ' . FLEETRA_NAME;
 
 $authFeatures = [
-    ['bi-broadcast-pin',  'Live fleet tracking',        'Follow every active trip on the map with route-level visibility.'],
+    ['bi-ticket-perforated', 'Passenger booking',          'Search services, reserve seats and issue printable e-tickets.'],
     ['bi-calendar-check', 'Conflict-free scheduling',   'Buses and drivers are validated so overlapping assignments cannot happen.'],
     ['bi-bar-chart-line', 'Operations reporting',       'Utilisation, revenue, delays and maintenance cost in one dashboard.'],
 ];

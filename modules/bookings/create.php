@@ -265,4 +265,10 @@ flash(
     . ' Open your tickets to print or download them.'
 );
 
+// Send a single-ticket booking straight to the ticket so the passenger can
+// view, print or download its PDF immediately.
+if (count($created) === 1) {
+    redirect('modules/tickets/view.php?ticket=' . urlencode((string) $created[0]['ticket_number']));
+}
+
 redirect('modules/bookings/index.php');

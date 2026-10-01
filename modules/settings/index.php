@@ -73,7 +73,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <?= render_page_header(
     'System settings',
-    'Configure how Fleetra behaves across booking, maintenance, tracking and notifications'
+    'Configure how Fleetra behaves across booking, maintenance and notifications'
 ) ?>
 
 <?php if ($errors !== []): ?>

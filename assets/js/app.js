@@ -786,6 +786,37 @@
     }
 
     /* --------------------------------------------------------------
+       Search panel: swap the From and To fields.
+       Markup: <button data-swap-from="from" data-swap-to="to">
+       -------------------------------------------------------------- */
+    function initLocationSwap() {
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-swap-from][data-swap-to]');
+
+            if (!button) {
+                return;
+            }
+
+            event.preventDefault();
+
+            var fromInput = document.getElementById(button.getAttribute('data-swap-from'));
+            var toInput = document.getElementById(button.getAttribute('data-swap-to'));
+
+            if (!fromInput || !toInput) {
+                return;
+            }
+
+            var tmp = fromInput.value;
+            fromInput.value = toInput.value;
+            toInput.value = tmp;
+
+            fromInput.dispatchEvent(new Event('change', { bubbles: true }));
+            toInput.dispatchEvent(new Event('change', { bubbles: true }));
+            fromInput.focus();
+        });
+    }
+
+    /* --------------------------------------------------------------
        Bootstrap
        -------------------------------------------------------------- */
     document.addEventListener('DOMContentLoaded', function () {
@@ -800,6 +831,7 @@
         initSeatPicker();
         initPrintButtons();
         initLocationAutocomplete();
+        initLocationSwap();
     });
 
     window.Fleetra = {
