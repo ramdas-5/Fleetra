@@ -134,3 +134,5 @@
 [2026-10-02 14:28:31] [INFO] Auto-scheduled 5 bookable departure(s) for imported routes.
 [2026-10-02 14:45:34] [INFO] Materialised demo service Kolkata -> Mala on 2026-10-02 15:15:00 as schedule #35
 [2026-10-02 15:13:56] [INFO] Auto-scheduled 14588 bookable departure(s) for imported routes.
+[2026-10-02 17:01:14] [INFO] Booking #3 cancelled by user #7
+[2026-10-02 18:32:22] [INFO] Materialised demo service Kolkata -> Siliguri on 2026-10-02 20:15:00 as schedule #23153

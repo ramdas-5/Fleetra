@@ -67,6 +67,9 @@
     padding: 0;
 }
 
+/* Sign-in shortcuts that only ever appear inside the mobile drawer. */
+.lp-nav__drawer-auth { display: none; }
+
 .lp-nav__link {
     color: rgba(232, 244, 238, .8);
     font-size: 13.5px;
@@ -138,6 +141,20 @@
 
 .lp-btn--lg { font-size: 15px; padding: 13px 24px; }
 
+/* Keyboard focus stays visible everywhere: dark green on light surfaces,
+   white over the hero and the closing call-to-action. */
+.lp a:focus-visible,
+.lp button:focus-visible,
+.lp summary:focus-visible {
+    outline: 2px solid var(--fl-primary);
+    outline-offset: 2px;
+}
+
+.lp-hero a:focus-visible,
+.lp-hero button:focus-visible,
+.lp-cta a:focus-visible,
+.lp-cta button:focus-visible { outline-color: #fff; }
+
 /* ------------------------------------------------------------------
    Hero
    ------------------------------------------------------------------ */
@@ -164,6 +181,30 @@
     position: absolute;
 }
 
+/* Soft colour blooms behind the hero copy. */
+.lp-hero__glow {
+    border-radius: 50%;
+    filter: blur(72px);
+    pointer-events: none;
+    position: absolute;
+}
+
+.lp-hero__glow--one {
+    background: rgba(143, 207, 51, .26);
+    height: 330px;
+    left: -100px;
+    top: -70px;
+    width: 330px;
+}
+
+.lp-hero__glow--two {
+    background: rgba(20, 158, 112, .34);
+    height: 420px;
+    right: -130px;
+    top: 30px;
+    width: 420px;
+}
+
 .lp-hero__inner {
     align-items: center;
     display: grid;
@@ -188,7 +229,7 @@
 
 .lp-hero__title {
     font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
-    font-size: clamp(34px, 4.4vw, 50px);
+    font-size: clamp(31px, 4.4vw, 50px);
     font-weight: 500;
     letter-spacing: -.01em;
     line-height: 1.06;
@@ -281,17 +322,17 @@
 
 .lp-search__submit {
     background: var(--fl-accent);
-    color: #08311F;
     border: 0;
     border-radius: 9px;
-    color: #fff;
+    color: #08311F;
     font-size: 14px;
     font-weight: 600;
     grid-column: 1 / -1;
-    padding: 12px 18px;
+    padding: 13px 18px;
+    transition: background-color .15s ease, transform .15s ease;
 }
 
-.lp-search__submit:hover { background: #9EDB45; }
+.lp-search__submit:hover { background: #9EDB45; transform: translateY(-1px); }
 
 /* Product preview mock --------------------------------------------- */
 .lp-preview { position: relative; }
@@ -401,6 +442,28 @@
 .lp-mock__pill--done { background: var(--fl-success-soft); color: #15803D; }
 .lp-mock__pill--late { background: var(--fl-warning-soft); color: #B45309; }
 
+.lp-mock__panel-tag--live {
+    align-items: center;
+    color: var(--fl-success);
+    display: inline-flex;
+    font-weight: 600;
+    gap: 6px;
+}
+
+.lp-pulse {
+    animation: lp-pulse 1.7s ease-out infinite;
+    background: var(--fl-success);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, .5);
+    height: 7px;
+    width: 7px;
+}
+
+@keyframes lp-pulse {
+    70% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
 .lp-mock__caption {
     color: rgba(214, 236, 225, .72);
     font-size: 12px;
@@ -424,7 +487,7 @@
 }
 
 .lp-stat { text-align: center; }
-.lp-stat__value { font-size: 28px; font-weight: 700; letter-spacing: -.01em; }
+.lp-stat__value { font-size: clamp(26px, 2.6vw, 33px); font-weight: 700; letter-spacing: -.01em; }
 .lp-stat__label { color: var(--fl-text-muted); font-size: 13px; margin-top: 4px; }
 
 /* ------------------------------------------------------------------
@@ -542,6 +605,29 @@
 .lp-route__fact { color: var(--fl-text-muted); font-size: 12.5px; }
 .lp-route__fact strong { color: var(--fl-text); display: block; font-size: 13.5px; }
 
+.lp-route__book {
+    align-items: center;
+    background: var(--fl-primary-soft);
+    border: 1px solid var(--fl-primary-border);
+    border-radius: var(--fl-radius-sm);
+    color: var(--fl-primary);
+    display: flex;
+    font-size: 13px;
+    font-weight: 600;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+    padding: 9px 14px;
+    text-decoration: none;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.lp-route__book:hover {
+    background: var(--fl-primary);
+    border-color: var(--fl-primary);
+    color: #fff;
+}
+
 /* Roles ------------------------------------------------------------- */
 .lp-roles { display: grid; gap: 14px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
@@ -617,8 +703,24 @@
         linear-gradient(158deg, #086347 0%, #07553D 52%, #063A2B 100%);
     border-radius: var(--fl-radius-lg);
     color: #fff;
+    overflow: hidden;
     padding: 54px 40px;
+    position: relative;
     text-align: center;
+}
+
+.lp-cta__body { position: relative; z-index: 1; }
+
+.lp-cta__skyline {
+    bottom: -4px;
+    left: 50%;
+    opacity: .3;
+    pointer-events: none;
+    position: absolute;
+    transform: translateX(-50%);
+    width: min(760px, 90%);
+    -webkit-mask-image: linear-gradient(to top, #000 55%, transparent);
+    mask-image: linear-gradient(to top, #000 55%, transparent);
 }
 
 .lp-cta__title {
@@ -789,6 +891,7 @@ html.lp-reveal-ready .lp-reveal.is-visible { opacity: 1; transform: none; }
 @media (max-width: 1024px) {
     .lp-hero { padding: 118px 0 76px; }
     .lp-hero__inner { gap: 40px; grid-template-columns: minmax(0, 1fr); }
+    .lp-preview { margin: 0 auto; max-width: 640px; width: 100%; }
     .lp-roles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .lp-routes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lp-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -824,6 +927,26 @@ html.lp-reveal-ready .lp-reveal.is-visible { opacity: 1; transform: none; }
 
     .lp-nav__links.is-open .lp-nav__link:hover { background: var(--fl-muted-soft); }
 
+    /* Auth shortcuts live in the drawer: the top-bar sign-in button is
+       hidden below 480px where there is no room for it. */
+    .lp-nav__links.is-open .lp-nav__drawer-auth {
+        border-top: 1px solid var(--fl-border);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 6px;
+        padding-top: 12px;
+    }
+
+    .lp-nav__links.is-open .lp-nav__drawer-auth .lp-btn { width: 100%; }
+
+    .lp-nav__links.is-open .lp-nav__drawer-auth .lp-btn--ghost {
+        border-color: var(--fl-border-strong);
+        color: var(--fl-text);
+    }
+
+    .lp-nav__links.is-open .lp-nav__drawer-auth .lp-btn--ghost:hover { background: var(--fl-muted-soft); }
+
     .lp-stats__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lp-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lp-section { padding: 62px 0; }
@@ -831,19 +954,41 @@ html.lp-reveal-ready .lp-reveal.is-visible { opacity: 1; transform: none; }
 
 @media (max-width: 640px) {
     .lp-search__fields { grid-template-columns: minmax(0, 1fr); }
-    .lp-hero { padding: 108px 0 62px; }
+    .lp-hero { padding: 104px 0 62px; }
     .lp-hero__actions { flex-direction: column; align-items: stretch; }
-    .lp-grid-3, .lp-routes, .lp-roles, .lp-steps { grid-template-columns: minmax(0, 1fr); }
+    .lp-grid-3, .lp-routes, .lp-steps { grid-template-columns: minmax(0, 1fr); }
+    .lp-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lp-mock__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lp-cta { padding: 40px 22px; }
     .lp-demo { padding: 20px; }
+    .lp-section { padding: 54px 0; }
+    .lp-section__head { margin-bottom: 32px; }
     .lp-footer { padding: 34px 0 26px; }
     .lp-footer__inner { flex-direction: column; gap: 26px; }
     .lp-footer__nav { gap: 32px; }
+}
+
+@media (max-width: 480px) {
+    /* Tighter top bar; the sign-in button moves into the drawer. */
+    .lp-nav__inner { gap: 10px; height: 62px; }
+    .lp-nav__actions .lp-btn { font-size: 12.5px; padding: 8px 13px; }
+    .lp-nav__actions .lp-btn--ghost { display: none; }
+    .lp-nav__links.is-open { left: 16px; right: 16px; top: 68px; }
+
+    .lp-hero { padding: 96px 0 58px; }
+
+    .lp-roles { grid-template-columns: minmax(0, 1fr); }
+    .lp-cta { padding: 34px 18px; }
+    .lp-cta__actions .lp-btn { width: 100%; }
+    .lp-faq summary { font-size: 14px; padding: 14px 15px; }
+    .lp-faq__answer { padding: 0 15px 15px; }
+    .lp-footer__bottom { flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .lp-card, .lp-btn, .lp-reveal { transition: none; }
     .lp-card:hover { transform: none; }
     html.lp-reveal-ready .lp-reveal { opacity: 1; transform: none; }
+
+    .lp-pulse { animation: none; }
 }

@@ -65,10 +65,10 @@ $heroStats = [];
 
 if ($fleetCount !== null) {
     $heroStats = [
-        ['value' => number_format($fleetCount),     'label' => 'Buses in the fleet'],
-        ['value' => number_format($routeCount),     'label' => 'Active routes'],
-        ['value' => number_format($stopsCount),     'label' => 'Mapped stops'],
-        ['value' => number_format($tripsOperated),  'label' => 'Trips operated'],
+        ['value' => number_format($fleetCount),    'label' => 'Buses in the fleet'],
+        ['value' => number_format($routeCount),    'label' => 'Active routes'],
+        ['value' => number_format($stopsCount),    'label' => 'Mapped stops'],
+        ['value' => number_format($tripsOperated), 'label' => 'Trips operated'],
     ];
 }
 
@@ -135,8 +135,14 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Fleetra is a smart bus and transport management system: fleet, drivers, scheduling, bookings, tickets, maintenance and reporting in one console.">
+    <meta name="theme-color" content="#086347">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<?= e($pageTitle) ?>">
+    <meta property="og:description" content="Run every bus, route and booking from one console — fleet, drivers, schedules, passengers and workshop in a single operations platform.">
     <title><?= e($pageTitle) ?></title>
+
+    <link rel="icon" type="image/png" href="<?= e(asset('images/logo.png')) ?>">
 
     <?php /* Vendor assets are served locally so the landing page works offline. */ ?>
     <link href="<?= e(asset('vendor/fonts/inter.css')) ?>" rel="stylesheet">
@@ -164,6 +170,10 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
             <?php endif; ?>
             <li><a class="lp-nav__link" href="#roles">Roles</a></li>
             <li><a class="lp-nav__link" href="#faq">FAQ</a></li>
+            <li class="lp-nav__drawer-auth">
+                <a class="lp-btn lp-btn--ghost" href="<?= e(url('login.php')) ?>">Sign in</a>
+                <a class="lp-btn lp-btn--primary" href="<?= e(url('register.php')) ?>">Create account</a>
+            </li>
         </ul>
 
         <div class="lp-nav__actions">
@@ -180,8 +190,11 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 <main>
     <!-- ============================ Hero ============================ -->
     <section class="lp-hero">
+        <div class="lp-hero__glow lp-hero__glow--one" aria-hidden="true"></div>
+        <div class="lp-hero__glow lp-hero__glow--two" aria-hidden="true"></div>
+
         <div class="lp-container lp-hero__inner">
-            <div>
+            <div class="lp-hero__copy">
                 <span class="lp-eyebrow">
                     <i class="bi bi-broadcast-pin" aria-hidden="true"></i>
                     Built for bus and intercity transport operators
@@ -238,7 +251,7 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
             </div>
 
             <!-- Decorative interface preview (no data, purely illustrative). -->
-            <div class="lp-preview" aria-hidden="true">
+            <div class="lp-preview lp-reveal" aria-hidden="true">
                 <div class="lp-mock">
                     <div class="lp-mock__bar">
                         <span class="lp-mock__dot"></span>
@@ -284,7 +297,7 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
                         <div class="lp-mock__panel">
                             <div class="lp-mock__panel-head">
                                 <span class="lp-mock__panel-title">Today's services</span>
-                                <span class="lp-mock__panel-tag">Live</span>
+                                <span class="lp-mock__panel-tag lp-mock__panel-tag--live"><span class="lp-pulse"></span> Live</span>
                             </div>
 
                             <div class="lp-mock__rows">
@@ -325,7 +338,7 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
             <div class="lp-container lp-stats__grid">
                 <?php foreach ($heroStats as $stat): ?>
                     <div class="lp-stat">
-                        <p class="lp-stat__value"><?= e($stat['value']) ?></p>
+                        <p class="lp-stat__value" data-countto="<?= (int) str_replace(',', '', $stat['value']) ?>"><?= e($stat['value']) ?></p>
                         <p class="lp-stat__label"><?= e($stat['label']) ?></p>
                     </div>
                 <?php endforeach; ?>
@@ -409,6 +422,11 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
                                         Boarding points
                                     </span>
                                 </div>
+
+                                <a class="lp-route__book"
+                                   href="<?= e(url('modules/search/index.php') . '?from=' . rawurlencode((string) $route['source']) . '&to=' . rawurlencode((string) $route['destination'])) ?>">
+                                    <i class="bi bi-ticket-perforated" aria-hidden="true"></i> Book seats on this route
+                                </a>
                             </div>
                         </article>
                     <?php endforeach; ?>
@@ -470,7 +488,7 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
     </section>
 
     <!-- ============================ Roles ============================ -->
-    <section class="lp-section" id="roles">
+    <section class="lp-section lp-section--soft" id="roles">
         <div class="lp-container">
             <div class="lp-section__head">
                 <p class="lp-eyebrow-dark">Five roles, one system</p>
@@ -495,21 +513,23 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 
     <!-- ======================== Demo accounts ======================== -->
     <?php if (FLEETRA_SHOW_DEMO_CREDENTIALS && $hasDatabase): ?>
-        <section class="lp-section lp-section--soft" id="demo">
+        <section class="lp-section" id="demo">
             <div class="lp-container">
                 <div class="lp-demo">
-                    <p class="lp-eyebrow-dark">Local demonstration build</p>
-                    <h2 class="lp-title">Try Fleetra with a demo account</h2>
-                    <p class="lp-text">
-                        Every account below uses the password <code>Fleetra@123</code>. This panel only appears while
-                        the application is running in local development mode.
-                    </p>
+                    <div class="lp-demo__intro">
+                        <p class="lp-eyebrow-dark">Local demonstration build</p>
+                        <h2 class="lp-title">Try Fleetra with a demo account</h2>
+                        <p class="lp-text">
+                            Every account below uses the password <code>Fleetra@123</code>. This panel only appears while
+                            the application is running in local development mode.
+                        </p>
+                    </div>
 
                     <div class="lp-demo__grid">
                         <?php foreach ($demoAccounts as [$role, $mail]): ?>
                             <div class="lp-demo__row">
-                                <span>
-                                    <span class="lp-demo__role"><?= e($role) ?></span><br>
+                                <span class="lp-demo__who">
+                                    <span class="lp-demo__role"><?= e($role) ?></span>
                                     <span class="lp-demo__mail"><?= e($mail) ?></span>
                                 </span>
                                 <a class="lp-demo__fill" href="<?= e(url('login.php')) ?>">Sign in</a>
@@ -597,19 +617,22 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
     <section class="lp-section">
         <div class="lp-container">
             <div class="lp-cta">
-                <h2 class="lp-cta__title">Ready to move your operation onto one console?</h2>
-                <p class="lp-cta__text">
-                    Create a passenger account to book a seat, or sign in as an operator to open the
-                    dashboard, dispatch board and reporting suite.
-                </p>
+                <img class="lp-cta__skyline" src="<?= e(asset('images/skyline.png')) ?>" alt="" aria-hidden="true" loading="lazy" decoding="async">
+                <div class="lp-cta__body">
+                    <h2 class="lp-cta__title">Ready to move your operation onto one console?</h2>
+                    <p class="lp-cta__text">
+                        Create a passenger account to book a seat, or sign in as an operator to open the
+                        dashboard, dispatch board and reporting suite.
+                    </p>
 
-                <div class="lp-cta__actions">
-                    <a class="lp-btn lp-btn--primary lp-btn--lg" href="<?= e(url('register.php')) ?>">
-                        <i class="bi bi-person-plus" aria-hidden="true"></i> Create a passenger account
-                    </a>
-                    <a class="lp-btn lp-btn--light lp-btn--lg" href="<?= e(url('login.php')) ?>">
-                        <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Sign in to Fleetra
-                    </a>
+                    <div class="lp-cta__actions">
+                        <a class="lp-btn lp-btn--primary lp-btn--lg" href="<?= e(url('register.php')) ?>">
+                            <i class="bi bi-person-plus" aria-hidden="true"></i> Create a passenger account
+                        </a>
+                        <a class="lp-btn lp-btn--light lp-btn--lg" href="<?= e(url('login.php')) ?>">
+                            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Sign in to Fleetra
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -660,13 +683,16 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
     </div>
 </footer>
 
+<script src="<?= e(asset('js/app.js')) ?>"></script>
 <script>
-/* Landing page behaviour: sticky navigation, mobile menu and smooth anchor
-   scrolling. Nothing here is a security or business boundary. */
+/* Landing page behaviour: sticky navigation, mobile menu, smooth anchor
+   scrolling, animated counters and scroll reveal. Nothing here is a
+   security or business boundary. */
 document.addEventListener('DOMContentLoaded', function () {
     var nav = document.getElementById('landingNav');
     var toggle = document.getElementById('landingToggle');
     var links = document.getElementById('landingLinks');
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function onScroll() {
         if (!nav) {
@@ -682,15 +708,38 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (toggle && links) {
-        toggle.addEventListener('click', function () {
-            var open = links.classList.toggle('is-open');
+        var setMenu = function (open) {
+            links.classList.toggle('is-open', open);
             toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
+        toggle.addEventListener('click', function () {
+            setMenu(!links.classList.contains('is-open'));
         });
 
         links.addEventListener('click', function (event) {
             if (event.target.closest('a')) {
-                links.classList.remove('is-open');
-                toggle.setAttribute('aria-expanded', 'false');
+                setMenu(false);
+            }
+        });
+
+        /* Tap outside or press Escape to dismiss the drawer. */
+        document.addEventListener('click', function (event) {
+            if (links.classList.contains('is-open') && !event.target.closest('#landingNav')) {
+                setMenu(false);
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && links.classList.contains('is-open')) {
+                setMenu(false);
+                toggle.focus();
+            }
+        });
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 860) {
+                setMenu(false);
             }
         });
     }
@@ -704,7 +753,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             event.preventDefault();
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
         });
     });
 
@@ -726,6 +775,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
         revealItems.forEach(function (item) {
             observer.observe(item);
+        });
+    }
+
+    /* Count the metric strip up from zero when it scrolls into view. The
+       server-rendered figure is left untouched when motion is reduced or
+       scripting is unavailable. */
+    var counters = document.querySelectorAll('[data-countto]');
+
+    if (counters.length && 'IntersectionObserver' in window &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        var formatter = new Intl.NumberFormat('en-US');
+
+        var countObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                countObserver.unobserve(entry.target);
+
+                var el = entry.target;
+                var target = parseInt(el.getAttribute('data-countto'), 10) || 0;
+                var duration = 1200;
+                var startedAt = null;
+
+                var tick = function (timestamp) {
+                    if (startedAt === null) {
+                        startedAt = timestamp;
+                    }
+
+                    var progress = Math.min((timestamp - startedAt) / duration, 1);
+                    var eased = 1 - Math.pow(1 - progress, 3);
+
+                    el.textContent = formatter.format(Math.round(target * eased));
+
+                    if (progress < 1) {
+                        requestAnimationFrame(tick);
+                    }
+                };
+
+                requestAnimationFrame(tick);
+            });
+        }, { threshold: 0.4 });
+
+        counters.forEach(function (counter) {
+            countObserver.observe(counter);
         });
     }
 });
