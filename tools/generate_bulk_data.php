@@ -109,7 +109,9 @@ $pdo->exec(
     "INSERT IGNORE INTO bus_operators
         (operator_code, operator_name, operator_type, state, headquarters, verification_status, notes)
      VALUES
-        ('MPSRTC', 'Madhya Pradesh State Road Transport Corporation', 'State Transport', 'Madhya Pradesh', 'Bhopal', 'Needs Verification', 'State road transport undertaking added so Madhya Pradesh routes are attributed locally.')"
+        ('MPSRTC', 'Madhya Pradesh State Road Transport Corporation', 'State Transport', 'Madhya Pradesh', 'Bhopal', 'Needs Verification', 'State road transport undertaking added so Madhya Pradesh routes are attributed locally.'),
+        ('LST', 'Ladakh State Transport', 'State Transport', 'Ladakh', 'Leh', 'Needs Verification', 'Regional transport undertaking added so Ladakh routes are attributed locally.'),
+        ('DNHTC', 'Dadra and Nagar Haveli and Daman & Diu Transport', 'State Transport', 'Dadra and Nagar Haveli and Daman and Diu', 'Silvassa', 'Needs Verification', 'Union territory transport undertaking added so Daman/Diu routes are attributed locally.')"
 );
 
 /**
