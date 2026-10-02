@@ -121,3 +121,5 @@
                 AND s.schedule_date BETWEEN ? AND ?
               ORDER BY s.schedule_date ASC, s.departure_time ASC
               LIMIT 300
+[2026-10-02 13:13:38] [ERROR] Database connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[2026-10-02 13:13:46] [ERROR] Database connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it

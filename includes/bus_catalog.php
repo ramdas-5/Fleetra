@@ -134,6 +134,31 @@ function bus_catalog_table_exists(string $table): bool
     return $cache[$table];
 }
 
+/**
+ * True when the routes table carries the imported bus-catalog columns.
+ *
+ * The application works with or without them: an un-migrated database just
+ * falls back to the base route columns, so the search page never dies with
+ * an "Unknown column" error before the migration is run.
+ */
+function bus_catalog_routes_have_catalog_columns(): bool
+{
+    static $has = null;
+
+    if ($has !== null) {
+        return $has;
+    }
+
+    $has = (int) db_value(
+        'SELECT COUNT(*) FROM information_schema.COLUMNS'
+        . ' WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = \'routes\' AND COLUMN_NAME = \'origin_city\'',
+        [],
+        0
+    ) > 0;
+
+    return $has;
+}
+
 /** Operating agencies used for generated services (real ones come from the DB). */
 function bus_catalog_operator_pool(): array
 {
@@ -190,13 +215,22 @@ function bus_catalog_known_routes(): array
     }
 
     $routes = [];
+    $catalog = bus_catalog_routes_have_catalog_columns();
+
+    $originCity = $catalog ? 'COALESCE(origin_city, source)' : 'source';
+    $destCity   = $catalog ? 'COALESCE(destination_city, destination)' : 'destination';
+    $operator   = $catalog ? 'operator_name' : 'NULL';
+    $routeType  = $catalog ? 'route_type' : 'NULL';
+    $dataSource = $catalog ? 'data_source' : "'manual'";
 
     try {
         $routes = db_all(
             'SELECT id, route_code, route_name, source, destination, distance, base_fare,
-                    operator_name, route_type, COALESCE(origin_city, source) AS origin_city,
-                    COALESCE(destination_city, destination) AS destination_city,
-                    data_source
+                    ' . $operator . ' AS operator_name,
+                    ' . $routeType . ' AS route_type,
+                    ' . $originCity . ' AS origin_city,
+                    ' . $destCity . ' AS destination_city,
+                    ' . $dataSource . ' AS data_source
                FROM routes
               WHERE status = "active"
               ORDER BY route_code
@@ -469,14 +503,22 @@ function bus_catalog_real_services(array $options): array
     $dateTo   = (string) ($options['date_to'] ?? $dateFrom);
     $limit    = max(1, min(500, (int) ($options['limit'] ?? 300)));
 
+    // Work with or without the imported catalog columns.
+    $catalog      = bus_catalog_routes_have_catalog_columns();
+    $originCity   = $catalog ? 'COALESCE(r.origin_city, r.source)' : 'r.source';
+    $destCity     = $catalog ? 'COALESCE(r.destination_city, r.destination)' : 'r.destination';
+    $operatorName = $catalog ? 'r.operator_name' : 'NULL';
+    $dataSource   = $catalog ? 'r.data_source' : "'manual'";
+
     try {
         $rows = db_all(
             'SELECT s.id, s.schedule_date, s.departure_time, s.arrival_time, s.status AS schedule_status,
                     r.id AS route_id, r.route_code, r.route_name, r.source, r.destination,
                     r.distance, r.estimated_duration, r.base_fare,
-                    COALESCE(r.origin_city, r.source) AS origin_city,
-                    COALESCE(r.destination_city, r.destination) AS destination_city,
-                    r.operator_name, r.data_source,
+                    ' . $originCity . ' AS origin_city,
+                    ' . $destCity . ' AS destination_city,
+                    ' . $operatorName . ' AS operator_name,
+                    ' . $dataSource . ' AS data_source,
                     b.id AS bus_id, b.bus_number, b.bus_type, b.capacity, b.manufacturer,
                     b.status AS bus_status,
                     u.name AS driver_name,

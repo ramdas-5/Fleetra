@@ -512,6 +512,22 @@ function excel_import_apply(string $file, bool $logRun = true, bool $dryRun = fa
     $data = excel_import_data($file);
     $pdo  = db();
 
+    // Fail with an actionable message when the database predates the
+    // catalog columns, instead of a raw "Unknown column" error.
+    $hasCatalogColumns = (int) db_value(
+        'SELECT COUNT(*) FROM information_schema.COLUMNS'
+        . ' WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = \'routes\' AND COLUMN_NAME = \'origin_city\'',
+        [],
+        0
+    ) > 0;
+
+    if (!$hasCatalogColumns) {
+        throw new RuntimeException(
+            'The routes table is missing the bus-catalog columns. Run '
+            . 'database/migrations/2026-10-02_bus_catalog.sql (or re-import database/fleetra_db.sql) first.'
+        );
+    }
+
     $inserted = ['operators' => 0, 'locations' => 0, 'routes' => 0, 'stops' => 0];
 
     $pdo->beginTransaction();
