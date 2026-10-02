@@ -16,8 +16,13 @@
  * route or terminal is never an empty screen. Demo services can never
  * duplicate a real one.
  *
+ * Every future service is bookable, demo or not: a demo service is
+ * materialised into a real route, bus, driver and schedule the moment the
+ * passenger selects it (see modules/search/book_demo.php), then booked
+ * through the ordinary seat picker.
+ *
  * Availability is about the timetable, not vehicle telemetry:
- *   scheduled    departure still ahead and seats available (real → bookable)
+ *   scheduled    departure still ahead and seats available
  *   departed     already left — only shown under "Earlier buses"
  *   unavailable  cancelled, in the workshop or fully booked
  */
@@ -27,6 +32,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../includes/permissions.php';
 require_once __DIR__ . '/../../includes/operations.php';
 require_once __DIR__ . '/../../includes/bus_catalog.php';
+require_once __DIR__ . '/../../includes/schedule_seeder.php';
 
 require_permission('trips.search');
 
@@ -47,6 +53,22 @@ $tab = get('tab');
 
 if (!in_array($tab, ['search', 'available'], true)) {
     $tab = $terminal !== '' ? 'available' : 'search';
+}
+
+/* ------------------------------------------------------------------
+ | Imported catalogue routes carry no timetable of their own until they
+ | are scheduled. Make sure the routes being looked at are real and
+ | bookable before they are listed, so a passenger never lands on a
+ | demo-only screen with no seat to select.
+ ------------------------------------------------------------------ */
+
+if ($from !== '' || $to !== '' || $terminal !== '') {
+    fleetra_ensure_route_schedules(
+        $from !== '' ? $from : null,
+        $to !== '' ? $to : null,
+        $terminal !== '' ? $terminal : null,
+        $date !== '' ? $date : null
+    );
 }
 
 /* ------------------------------------------------------------------
@@ -142,7 +164,7 @@ function render_bus_card(array $service, array $labels, string $from, string $to
     $html .= '<div class="bus-card__aside">';
     $html .= '<div class="bus-card__fare">';
     $html .= '<span class="bus-card__fare-value">' . e(money((float) $service['fare'])) . '</span>';
-    $html .= '<span class="bus-card__fare-note">' . ($isDemo ? 'Indicative demo fare' : 'Base fare · pro-rated per leg') . '</span>';
+    $html .= '<span class="bus-card__fare-note">' . ($isDemo ? 'Demo fare · bookable' : 'Base fare · pro-rated per leg') . '</span>';
     $html .= '</div>';
 
     $html .= '<div class="bus-card__seats">';
@@ -164,9 +186,18 @@ function render_bus_card(array $service, array $labels, string $from, string $to
     if ($service['bookable']) {
         $html .= '<a class="btn btn-primary w-100" href="' . e($bookUrl) . '">'
             . '<i class="bi bi-ui-checks-grid" aria-hidden="true"></i> Select seats</a>';
-    } elseif ($isDemo) {
-        $html .= '<span class="btn btn-outline-secondary w-100 disabled" aria-disabled="true" title="Demo services are for testing and cannot be booked">'
-            . '<i class="bi bi-info-circle" aria-hidden="true"></i> Demo timetable</span>';
+    } elseif ($isDemo && $availability === 'scheduled') {
+        // A demo service is bookable too: picking it turns it into a real
+        // departure and drops the passenger into the normal seat picker.
+        $html .= render_demo_booking_form(
+            $service,
+            $from,
+            $to,
+            $passengers,
+            'btn btn-primary w-100',
+            'Select seats',
+            'bi-ui-checks-grid'
+        );
     } else {
         $html .= '<span class="btn btn-outline-secondary w-100 disabled" aria-disabled="true">'
             . '<i class="bi bi-slash-circle" aria-hidden="true"></i> '
@@ -175,6 +206,39 @@ function render_bus_card(array $service, array $labels, string $from, string $to
 
     $html .= '</div>';
     $html .= '</article>';
+
+    return $html;
+}
+
+/**
+ * Booking form for a demo service.
+ *
+ * Demo services are not stored, so selecting one posts its identity to
+ * book_demo.php, which materialises it and then opens the seat picker.
+ *
+ * @param array<string, mixed> $service
+ */
+function render_demo_booking_form(
+    array $service,
+    string $from,
+    string $to,
+    int $passengers,
+    string $buttonClass,
+    string $label,
+    string $icon
+): string {
+    $html  = '<form method="post" action="' . e(url('modules/search/book_demo.php')) . '" class="m-0">';
+    $html .= csrf_field();
+    $html .= '<input type="hidden" name="origin" value="' . e((string) $service['origin']) . '">';
+    $html .= '<input type="hidden" name="destination" value="' . e((string) $service['destination']) . '">';
+    $html .= '<input type="hidden" name="date" value="' . e((string) $service['date']) . '">';
+    $html .= '<input type="hidden" name="time" value="' . e((string) $service['departure_time']) . '">';
+    $html .= '<input type="hidden" name="passengers" value="' . $passengers . '">';
+    $html .= '<input type="hidden" name="from" value="' . e($from) . '">';
+    $html .= '<input type="hidden" name="to" value="' . e($to) . '">';
+    $html .= '<button type="submit" class="' . e($buttonClass) . '">'
+        . '<i class="bi ' . e($icon) . '" aria-hidden="true"></i> ' . e($label) . '</button>';
+    $html .= '</form>';
 
     return $html;
 }
@@ -235,6 +299,16 @@ function render_departure_row(array $service, string $terminal, int $passengers 
 
     if ($service['bookable']) {
         $html .= '<a class="btn btn-sm btn-primary" href="' . e($bookUrl) . '">Book</a>';
+    } elseif ($isDemo && $availability === 'scheduled') {
+        $html .= render_demo_booking_form(
+            $service,
+            $terminal,
+            (string) $service['destination'],
+            $passengers,
+            'btn btn-sm btn-primary',
+            'Book',
+            'bi-ticket-perforated'
+        );
     } else {
         $html .= '<span class="badge-status badge-muted">Demo</span>';
     }
@@ -375,7 +449,8 @@ require __DIR__ . '/../../includes/header.php';
             <p class="form-text mb-0">
                 <i class="bi bi-info-circle" aria-hidden="true"></i>
                 Type a city, terminal or stop — suggestions appear as you type. Results include demo services when a
-                route has no scheduled bus yet, so the board is never empty during testing.
+                route has no scheduled bus yet, so the board is never empty — and any demo service can be booked just
+                like a scheduled one.
             </p>
         </form>
     </div>

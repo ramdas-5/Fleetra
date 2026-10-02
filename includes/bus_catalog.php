@@ -385,6 +385,26 @@ function bus_catalog_estimate_distance(string $origin, string $destination, ?arr
 }
 
 /**
+ * Estimated journey time in minutes for a road distance, at roughly
+ * 45 km/h. Used for demo services and for imported routes whose workbook
+ * row carried no duration.
+ */
+function bus_catalog_estimate_duration(float $distanceKm): int
+{
+    return max(45, (int) round($distanceKm / 45 * 60));
+}
+
+/**
+ * Indicative base fare for a road distance. Used for demo services and for
+ * imported routes whose workbook row carried no fare, so a ticket is never
+ * issued for a zero rupee journey.
+ */
+function bus_catalog_estimate_fare(float $distanceKm): float
+{
+    return max(60.0, (float) (round($distanceKm * 1.15 / 10) * 10));
+}
+
+/**
  * Build one demo service in exactly the same shape as a real one.
  *
  * @param array<string, mixed>|null $hint Matching catalog route, when one exists.
@@ -398,12 +418,12 @@ function bus_catalog_demo_service(string $origin, string $destination, string $d
     $seed        = bus_catalog_seed($key);
 
     $distance  = bus_catalog_estimate_distance($origin, $destination, $hint);
-    $duration  = max(45, (int) round($distance / 45 * 60));
+    $duration  = bus_catalog_estimate_duration($distance);
     $capacity  = 32 + ($seed % 23);           // 32–54 seats
     $seatsLeft = max(4, $capacity - ($seed % 17));
     $fare      = $hint !== null && (float) $hint['base_fare'] > 0
         ? (float) $hint['base_fare']
-        : max(60.0, round($distance * 1.15 / 10) * 10);
+        : bus_catalog_estimate_fare($distance);
 
     $operators = bus_catalog_operator_pool();
     $operator  = (string) ($hint['operator_name'] ?? '') ?: $operators[$seed % count($operators)];
@@ -714,7 +734,10 @@ function bus_catalog_classify(array $service, int $now, int $passengers = 1): ar
 
     $service['availability'] = $availability;
     $service['too_full']     = $tooFull;
-    // Only a real, scheduled departure can be booked.
+    // A real, scheduled departure is bookable immediately. A future demo
+    // service is bookable as well, but only through the materialisation
+    // path (includes/demo_booking.php), so it is not flagged here; the
+    // search UI renders it as a booking form pointing at book_demo.php.
     $service['bookable']     = $availability === 'scheduled' && !$isDemo;
     $service['minutes_to_go'] = $departure !== null ? (int) floor(($departure - $now) / 60) : null;
 

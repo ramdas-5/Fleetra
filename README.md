@@ -136,8 +136,9 @@ fleetra/
 ├── includes/      auth.php  permissions.php  functions.php  operations.php
 │                  nav.php  header.php  sidebar.php  topbar.php  footer.php
 │                  alerts.php  auth-header.php  auth-footer.php
-│                  locations.php  bus_catalog.php  xlsx_reader.php  excel_importer.php
-├── tools/         import_excel.php                      (Excel catalogue importer, CLI)
+│                  locations.php  bus_catalog.php  schedule_seeder.php
+│                  xlsx_reader.php  excel_importer.php
+├── tools/         import_excel.php  generate_schedules.php  (CLI utilities)
 ├── assets/
 │   ├── css/       style.css  responsive.css  landing.css
 │   ├── js/        app.js
@@ -232,6 +233,21 @@ it again never duplicates a record and never overwrites a row an administrator h
 Because the unique keys use a case-insensitive collation, `Kolkata`, `kolkata` and `KOLKATA`
 resolve to one terminal. Each run is recorded in `data_import_runs`.
 
+**Turning imported routes into bookable departures.** A route on its own is not a
+departure — nothing can be sold until it has a dated schedule. `includes/schedule_seeder.php`
+closes that gap: for the imported routes a passenger is actually looking at, it backfills the
+metrics the workbook left at zero (distance, journey time, base fare), spreads each route's stop
+arrival offsets so the seat picker can order them, and writes real departures for the next few
+days, assigning a bus and a driver to a free `(bus, date, time)` / `(driver, date, time)` slot so
+the database's unique keys are never violated. The search page runs this automatically for the
+routes it shows, and it is idempotent — a route with an upcoming departure is never touched.
+
+To pre-build the whole timetable instead of letting the first search request do it:
+
+```bash
+php tools/generate_schedules.php --days=14
+```
+
 ### Search buses and Available buses
 `modules/search/index.php` is split into two clearly separated sections:
 
@@ -247,8 +263,13 @@ departures with generated **demo services**. Demo services fill routes and termi
 scheduled bus yet so the board is never empty during testing, are always flagged (dashed border,
 *Demo service* chip) and can never duplicate a real departure — a demo is skipped whenever the
 same origin / destination / departure time already exists. Demo services are generated
-deterministically from the live catalogue rather than hardcoded, follow the same data structure
-as real buses, and are not bookable.
+deterministically from the live catalogue rather than hardcoded, and follow the same data
+structure as real buses. **Demo services are bookable too**: selecting one posts its identity to
+`modules/search/book_demo.php`, which materialises just that departure — route, stops, bus,
+driver and schedule — via `includes/demo_booking.php` and then opens the normal seat picker, so
+a demo ticket is a real ticket with a real booking and QR code. Imported catalogue routes are
+also given real schedules up front by `includes/schedule_seeder.php` (above), so on repeat
+searches demo services shrink to only the times a real timetable does not cover.
 
 ### Public landing page
 `index.php` renders a marketing page for guests and redirects signed-in users to their role

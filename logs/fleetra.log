@@ -124,3 +124,8 @@
 [2026-10-02 13:13:38] [ERROR] Database connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
 [2026-10-02 13:13:46] [ERROR] Database connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
 [2026-10-02 13:15:31] [ERROR] Database connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[2026-10-02 13:46:23] [INFO] Auto-scheduled 5 bookable departure(s) for imported routes.
+[2026-10-02 13:49:04] [INFO] Materialised demo service Barasat -> Basirhat on 2026-10-03 08:45:00 as schedule #25
+[2026-10-02 13:49:33] [INFO] Materialised demo service Mumbai -> Pune on 2026-10-02 14:30:00 as schedule #26
+[2026-10-02 13:50:05] [INFO] Materialised demo service Malda -> Kolkata on 2026-10-02 20:15:00 as schedule #27
+[2026-10-02 13:52:46] [INFO] Materialised demo service Barasat -> Kolkata on 2026-10-02 20:15:00 as schedule #28
