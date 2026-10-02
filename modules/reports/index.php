@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var config = <?= e_js($report['chart']) ?>;
 
     Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-    Chart.defaults.color = '#64748B';
+    Chart.defaults.color = '#5F736B';
     Chart.defaults.font.size = 12;
 
     new Chart(canvas, {
@@ -230,12 +230,12 @@ document.addEventListener('DOMContentLoaded', function () {
             maintainAspectRatio: false,
             plugins: {
                 legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true } },
-                tooltip: { backgroundColor: '#0F172A', padding: 10 }
+                tooltip: { backgroundColor: '#0A3F2C', padding: 10 }
             },
             scales: config.type === 'line' || config.type === 'bar'
                 ? {
-                    x: { grid: { display: false }, border: { color: '#E2E8F0' } },
-                    y: { beginAtZero: true, grid: { color: '#F1F5F9' }, border: { display: false } }
+                    x: { grid: { display: false }, border: { color: '#DCEBE3' } },
+                    y: { beginAtZero: true, grid: { color: '#EAF3EE' }, border: { display: false } }
                 }
                 : {}
         }

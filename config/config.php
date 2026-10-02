@@ -43,9 +43,9 @@ if (PHP_VERSION_ID < 80000) {
     header('Content-Type: text/html; charset=utf-8');
     echo '<!doctype html><meta charset="utf-8"><title>Fleetra — PHP version</title>'
         . '<div style="font:15px/1.6 system-ui,Arial,sans-serif;max-width:520px;margin:80px auto;padding:28px;'
-        . 'border:1px solid #E2E8F0;border-radius:14px;background:#fff;color:#0F172A">'
+        . 'border:1px solid #DCEBE3;border-radius:14px;background:#fff;color:#1F2D28">'
         . '<h1 style="font-size:19px;margin:0 0 10px">Fleetra needs PHP 8.0 or newer</h1>'
-        . '<p style="color:#64748B;margin:0">This server is running PHP ' . PHP_VERSION . '. '
+        . '<p style="color:#5F736B;margin:0">This server is running PHP ' . PHP_VERSION . '. '
         . 'Set the PHP version for this site to 8.0 or above in your hosting control panel, then reload.</p></div>';
     exit;
 }
@@ -210,16 +210,16 @@ function fleetra_fatal(string $userMessage, int $statusCode = 500): void
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
   body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-         background:#F8FAFC; color:#0F172A; font:15px/1.6 Inter, system-ui, -apple-system, Arial, sans-serif; padding:24px; }
-  .box { background:#fff; border:1px solid #E2E8F0; border-radius:14px; padding:36px 32px; max-width:460px; width:100%;
-         box-shadow:0 1px 2px rgba(15,23,42,.04); text-align:center; }
-  .mark { width:44px; height:44px; margin:0 auto 18px; border-radius:12px; background:#2563EB; color:#fff;
+         background:#F7FAF8; color:#1F2D28; font:15px/1.6 Inter, system-ui, -apple-system, Arial, sans-serif; padding:24px; }
+  .box { background:#fff; border:1px solid #DCEBE3; border-radius:14px; padding:36px 32px; max-width:460px; width:100%;
+         box-shadow:0 1px 2px rgba(9,62,45,.05); text-align:center; }
+  .mark { width:44px; height:44px; margin:0 auto 18px; border-radius:12px; background:#086347; color:#fff;
           display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; letter-spacing:.5px; }
   h1 { font-size:20px; margin:0 0 8px; }
-  p { margin:0 0 22px; color:#64748B; font-size:14px; }
-  a { display:inline-block; background:#2563EB; color:#fff; text-decoration:none; padding:10px 18px;
+  p { margin:0 0 22px; color:#5F736B; font-size:14px; }
+  a { display:inline-block; background:#086347; color:#fff; text-decoration:none; padding:10px 18px;
       border-radius:9px; font-weight:600; font-size:14px; }
-  a:hover { background:#1D4ED8; }
+  a:hover { background:#064B37; }
 </style>
 </head>
 <body>

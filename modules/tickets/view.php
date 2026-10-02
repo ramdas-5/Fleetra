@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
         text: target.getAttribute('data-qr') || '',
         width: 168,
         height: 168,
-        colorDark: '#0F172A',
+        colorDark: '#0A3F2C',
         colorLight: '#FFFFFF',
         correctLevel: QRCode.CorrectLevel.M
     });

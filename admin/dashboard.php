@@ -565,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var bookings = <?= e_js($chartBookingData) ?>;
 
     Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-    Chart.defaults.color = '#64748B';
+    Chart.defaults.color = '#5F736B';
     Chart.defaults.font.size = 12;
 
     var activityCanvas = document.getElementById('tripActivityChart');
@@ -578,14 +578,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     {
                         label: 'Trips operated',
                         data: trips,
-                        backgroundColor: '#2563EB',
+                        backgroundColor: '#086347',
                         borderRadius: 5,
                         maxBarThickness: 26
                     },
                     {
                         label: 'Bookings',
                         data: bookings,
-                        backgroundColor: '#BFDBFE',
+                        backgroundColor: '#C8E2D7',
                         borderRadius: 5,
                         maxBarThickness: 26
                     }
@@ -596,14 +596,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true } },
-                    tooltip: { backgroundColor: '#0F172A', padding: 10, displayColors: false }
+                    tooltip: { backgroundColor: '#0A3F2C', padding: 10, displayColors: false }
                 },
                 scales: {
-                    x: { grid: { display: false }, border: { color: '#E2E8F0' } },
+                    x: { grid: { display: false }, border: { color: '#DCEBE3' } },
                     y: {
                         beginAtZero: true,
                         ticks: { precision: 0 },
-                        grid: { color: '#F1F5F9' },
+                        grid: { color: '#EAF3EE' },
                         border: { display: false }
                     }
                 }
@@ -619,7 +619,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 labels: <?= e_js($chartFleetLabels) ?>,
                 datasets: [{
                     data: <?= e_js($chartFleetData) ?>,
-                    backgroundColor: ['#16A34A', '#D97706', '#94A3B8'],
+                    backgroundColor: ['#12885E', '#B4791A', '#93A69D'],
                     borderWidth: 0,
                     hoverOffset: 4
                 }]
@@ -630,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 cutout: '68%',
                 plugins: {
                     legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true } },
-                    tooltip: { backgroundColor: '#0F172A', padding: 10 }
+                    tooltip: { backgroundColor: '#0A3F2C', padding: 10 }
                 }
             }
         });

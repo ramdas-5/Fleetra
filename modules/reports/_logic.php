@@ -329,7 +329,7 @@ function build_report(string $key, array $filters): array
                     'datasets' => [[
                         'label'           => 'Load factor %',
                         'data'            => $chartData,
-                        'backgroundColor' => '#2563EB',
+                        'backgroundColor' => '#086347',
                         'borderRadius'    => 5,
                     ]],
                 ],
@@ -405,8 +405,8 @@ function build_report(string $key, array $filters): array
                     'type'     => 'line',
                     'labels'   => $labels,
                     'datasets' => [
-                        ['label' => 'Completed', 'data' => $completed, 'borderColor' => '#16A34A', 'backgroundColor' => 'rgba(22,163,74,.12)', 'fill' => true, 'tension' => .3],
-                        ['label' => 'Cancelled', 'data' => $cancelled, 'borderColor' => '#DC2626', 'backgroundColor' => 'rgba(220,38,38,.12)', 'fill' => true, 'tension' => .3],
+                        ['label' => 'Completed', 'data' => $completed, 'borderColor' => '#12885E', 'backgroundColor' => 'rgba(18,136,94,.12)', 'fill' => true, 'tension' => .3],
+                        ['label' => 'Cancelled', 'data' => $cancelled, 'borderColor' => '#D0524C', 'backgroundColor' => 'rgba(208,82,76,.12)', 'fill' => true, 'tension' => .3],
                     ],
                 ],
             ];
@@ -485,8 +485,8 @@ function build_report(string $key, array $filters): array
                     'type'     => 'bar',
                     'labels'   => $labels,
                     'datasets' => [
-                        ['label' => 'Passengers', 'data' => $passengers, 'backgroundColor' => '#2563EB', 'borderRadius' => 5],
-                        ['label' => 'Revenue', 'data' => $revenue, 'backgroundColor' => '#BFDBFE', 'borderRadius' => 5],
+                        ['label' => 'Passengers', 'data' => $passengers, 'backgroundColor' => '#086347', 'borderRadius' => 5],
+                        ['label' => 'Revenue', 'data' => $revenue, 'backgroundColor' => '#C8E2D7', 'borderRadius' => 5],
                     ],
                 ],
             ];
@@ -562,7 +562,7 @@ function build_report(string $key, array $filters): array
                     'datasets' => [[
                         'label'           => 'Bookings',
                         'data'            => $bookings,
-                        'backgroundColor' => '#0284C7',
+                        'backgroundColor' => '#0B7A55',
                         'borderRadius'    => 5,
                     ]],
                 ],
@@ -660,8 +660,8 @@ function build_report(string $key, array $filters): array
                     'datasets' => [[
                         'label'           => 'Gross collected',
                         'data'            => $grossData,
-                        'borderColor'     => '#16A34A',
-                        'backgroundColor' => 'rgba(22,163,74,.12)',
+                        'borderColor'     => '#12885E',
+                        'backgroundColor' => 'rgba(18,136,94,.12)',
                         'fill'            => true,
                         'tension'         => .3,
                     ]],
@@ -742,7 +742,7 @@ function build_report(string $key, array $filters): array
                     'datasets' => [[
                         'label'           => 'Maintenance spend',
                         'data'            => $spendData,
-                        'backgroundColor' => '#D97706',
+                        'backgroundColor' => '#B4791A',
                         'borderRadius'    => 5,
                     ]],
                 ],
@@ -815,7 +815,7 @@ function build_report(string $key, array $filters): array
                     'datasets' => [[
                         'label'           => 'Trips',
                         'data'            => $tripsData,
-                        'backgroundColor' => '#2563EB',
+                        'backgroundColor' => '#086347',
                         'borderRadius'    => 5,
                     ]],
                 ],
@@ -920,7 +920,7 @@ function build_report(string $key, array $filters): array
                     'datasets' => [[
                         'label'           => 'Total delay (minutes)',
                         'data'            => $delayData,
-                        'backgroundColor' => '#DC2626',
+                        'backgroundColor' => '#D0524C',
                         'borderRadius'    => 5,
                     ]],
                 ],
