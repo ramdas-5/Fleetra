@@ -55,7 +55,14 @@ role-aware console.
    **Import** → choose `database/fleetra_db.sql` → **Import**.
    *(The script creates `fleetra_db` itself, so no database needs to be selected first.
    It is safe to re-run: it drops and recreates the tables and reseeds the demo data.)*
-3. **Open the app** — <http://localhost/fleetra/>
+3. **Import the India bus catalogue** — in phpMyAdmin, **Import** →
+   `database/excel_bus_catalog.sql` → **Import**.
+   This adds the **1,023 terminals, 902 cities, 86 routes and 39 operators**
+   from the workbook in the project root. It is idempotent — re-importing never
+   creates a duplicate. *(If you prefer, skip this file and run
+   `php tools/import_excel.php --apply` instead; see
+   [Bus catalogue import](#bus-catalogue-import) below.)*
+4. **Open the app** — <http://localhost/fleetra/>
 
 If your project folder is not named `fleetra`, no configuration is needed — `BASE_URL` is
 detected automatically from `DOCUMENT_ROOT`. Only the `config/database.php` credentials would
@@ -129,12 +136,15 @@ fleetra/
 ├── includes/      auth.php  permissions.php  functions.php  operations.php
 │                  nav.php  header.php  sidebar.php  topbar.php  footer.php
 │                  alerts.php  auth-header.php  auth-footer.php
+│                  locations.php  bus_catalog.php  xlsx_reader.php  excel_importer.php
+├── tools/         import_excel.php                      (Excel catalogue importer, CLI)
 ├── assets/
 │   ├── css/       style.css  responsive.css  landing.css
 │   ├── js/        app.js
 │   ├── images/
 │   └── vendor/    bootstrap  bootstrap-icons  chartjs  fonts  leaflet  qrcode
-├── database/      fleetra_db.sql
+├── database/      fleetra_db.sql  excel_bus_catalog.sql
+│                  migrations/    (one-off migrations for existing databases)
 ├── docker/        entrypoint.sh                        (container port handling)
 ├── uploads/       profiles/  buses/
 ├── logs/          fleetra.log  php-error.log         (created at runtime)
@@ -202,6 +212,43 @@ JSON `403`; normal pages render a branded `403` page.
 ---
 
 ## 7. Notable features
+
+### Bus catalogue import
+
+The project root ships an Excel workbook (`India_Bus_Terminals_and_Routes_EXPANDED_2026-10-02.xlsx`)
+that is the primary source for terminals, cities, routes and operators. It is imported into the
+catalogue tables:
+
+```bash
+php tools/import_excel.php --stats    # show what the workbook contains
+php tools/import_excel.php --sql      # regenerate database/excel_bus_catalog.sql
+php tools/import_excel.php --apply    # import straight into the database
+```
+
+The PHP importer reads the `.xlsx` itself (`includes/xlsx_reader.php`, no Composer or PHP zip
+extension needed) and every insert is **idempotent**: terminals and cities are matched on the
+unique `(city, name, state)` key, operators on their code and routes on their external id. Running
+it again never duplicates a record and never overwrites a row an administrator has since edited.
+Because the unique keys use a case-insensitive collation, `Kolkata`, `kolkata` and `KOLKATA`
+resolve to one terminal. Each run is recorded in `data_import_runs`.
+
+### Search buses and Available buses
+`modules/search/index.php` is split into two clearly separated sections:
+
+- **Search buses** — From / To / date / passengers with type-ahead suggestions, rendered as clean
+  bus cards (bus, operator, from → to, departure, arrival, duration, stops, seats, fare, type).
+- **Available buses** — *Your current bus terminal*: search or quick-pick the terminal you are in
+  and see every departure still to come from it, in chronological order for the current time,
+  across the rest of the day. Already-departed services are hidden unless the explicit
+  **Earlier buses** toggle is used.
+
+Both sections read one catalogue (`includes/bus_catalog.php`) that merges real scheduled
+departures with generated **demo services**. Demo services fill routes and terminals with no
+scheduled bus yet so the board is never empty during testing, are always flagged (dashed border,
+*Demo service* chip) and can never duplicate a real departure — a demo is skipped whenever the
+same origin / destination / departure time already exists. Demo services are generated
+deterministically from the live catalogue rather than hardcoded, follow the same data structure
+as real buses, and are not bookable.
 
 ### Public landing page
 `index.php` renders a marketing page for guests and redirects signed-in users to their role

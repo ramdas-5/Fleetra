@@ -33,3 +33,91 @@
 [2026-10-02 03:21:17] [WARNING] Permission denied: user #2 (manager) needed "users.manage" at /modules/users/index.php
 [2026-10-02 03:23:44] [WARNING] Permission denied: user #7 tried to download ticket TKT-0002
 [2026-10-02 03:24:41] [WARNING] Permission denied: user #7 tried to open ticket TKT-0002
+[2026-10-02 12:58:44] [ERROR] Query failed: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.origin_city' in 'field list' | SQL: SELECT s.id, s.schedule_date, s.departure_time, s.arrival_time, s.status AS schedule_status,
+                    r.id AS route_id, r.route_code, r.route_name, r.source, r.destination,
+                    r.distance, r.estimated_duration, r.base_fare,
+                    COALESCE(r.origin_city, r.source) AS origin_city,
+                    COALESCE(r.destination_city, r.destination) AS destination_city,
+                    r.operator_name, r.data_source,
+                    b.id AS bus_id, b.bus_number, b.bus_type, b.capacity, b.manufacturer,
+                    b.status AS bus_status,
+                    u.name AS driver_name,
+                    (SELECT COUNT(*) FROM bookings bk
+                      WHERE bk.schedule_id = s.id AND bk.booking_status IN ("pending","confirmed","completed")) AS seats_taken,
+                    (SELECT COUNT(*) FROM stops st2 WHERE st2.route_id = r.id) AS stop_count
+               FROM schedules s
+               JOIN routes r  ON r.id = s.route_id
+               JOIN buses b   ON b.id = s.bus_id
+               JOIN drivers d ON d.id = s.driver_id
+               JOIN users u   ON u.id = d.user_id
+              WHERE r.status = "active"
+                AND s.status <> "cancelled"
+                AND s.schedule_date BETWEEN ? AND ?
+              ORDER BY s.schedule_date ASC, s.departure_time ASC
+              LIMIT 300
+[2026-10-02 13:00:17] [ERROR] Query failed: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.origin_city' in 'field list' | SQL: SELECT s.id, s.schedule_date, s.departure_time, s.arrival_time, s.status AS schedule_status,
+                    r.id AS route_id, r.route_code, r.route_name, r.source, r.destination,
+                    r.distance, r.estimated_duration, r.base_fare,
+                    COALESCE(r.origin_city, r.source) AS origin_city,
+                    COALESCE(r.destination_city, r.destination) AS destination_city,
+                    r.operator_name, r.data_source,
+                    b.id AS bus_id, b.bus_number, b.bus_type, b.capacity, b.manufacturer,
+                    b.status AS bus_status,
+                    u.name AS driver_name,
+                    (SELECT COUNT(*) FROM bookings bk
+                      WHERE bk.schedule_id = s.id AND bk.booking_status IN ("pending","confirmed","completed")) AS seats_taken,
+                    (SELECT COUNT(*) FROM stops st2 WHERE st2.route_id = r.id) AS stop_count
+               FROM schedules s
+               JOIN routes r  ON r.id = s.route_id
+               JOIN buses b   ON b.id = s.bus_id
+               JOIN drivers d ON d.id = s.driver_id
+               JOIN users u   ON u.id = d.user_id
+              WHERE r.status = "active"
+                AND s.status <> "cancelled"
+                AND s.schedule_date BETWEEN ? AND ?
+              ORDER BY s.schedule_date ASC, s.departure_time ASC
+              LIMIT 300
+[2026-10-02 13:00:24] [ERROR] Query failed: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.origin_city' in 'field list' | SQL: SELECT s.id, s.schedule_date, s.departure_time, s.arrival_time, s.status AS schedule_status,
+                    r.id AS route_id, r.route_code, r.route_name, r.source, r.destination,
+                    r.distance, r.estimated_duration, r.base_fare,
+                    COALESCE(r.origin_city, r.source) AS origin_city,
+                    COALESCE(r.destination_city, r.destination) AS destination_city,
+                    r.operator_name, r.data_source,
+                    b.id AS bus_id, b.bus_number, b.bus_type, b.capacity, b.manufacturer,
+                    b.status AS bus_status,
+                    u.name AS driver_name,
+                    (SELECT COUNT(*) FROM bookings bk
+                      WHERE bk.schedule_id = s.id AND bk.booking_status IN ("pending","confirmed","completed")) AS seats_taken,
+                    (SELECT COUNT(*) FROM stops st2 WHERE st2.route_id = r.id) AS stop_count
+               FROM schedules s
+               JOIN routes r  ON r.id = s.route_id
+               JOIN buses b   ON b.id = s.bus_id
+               JOIN drivers d ON d.id = s.driver_id
+               JOIN users u   ON u.id = d.user_id
+              WHERE r.status = "active"
+                AND s.status <> "cancelled"
+                AND s.schedule_date BETWEEN ? AND ?
+              ORDER BY s.schedule_date ASC, s.departure_time ASC
+              LIMIT 300
+[2026-10-02 13:00:38] [ERROR] Query failed: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.origin_city' in 'field list' | SQL: SELECT s.id, s.schedule_date, s.departure_time, s.arrival_time, s.status AS schedule_status,
+                    r.id AS route_id, r.route_code, r.route_name, r.source, r.destination,
+                    r.distance, r.estimated_duration, r.base_fare,
+                    COALESCE(r.origin_city, r.source) AS origin_city,
+                    COALESCE(r.destination_city, r.destination) AS destination_city,
+                    r.operator_name, r.data_source,
+                    b.id AS bus_id, b.bus_number, b.bus_type, b.capacity, b.manufacturer,
+                    b.status AS bus_status,
+                    u.name AS driver_name,
+                    (SELECT COUNT(*) FROM bookings bk
+                      WHERE bk.schedule_id = s.id AND bk.booking_status IN ("pending","confirmed","completed")) AS seats_taken,
+                    (SELECT COUNT(*) FROM stops st2 WHERE st2.route_id = r.id) AS stop_count
+               FROM schedules s
+               JOIN routes r  ON r.id = s.route_id
+               JOIN buses b   ON b.id = s.bus_id
+               JOIN drivers d ON d.id = s.driver_id
+               JOIN users u   ON u.id = d.user_id
+              WHERE r.status = "active"
+                AND s.status <> "cancelled"
+                AND s.schedule_date BETWEEN ? AND ?
+              ORDER BY s.schedule_date ASC, s.departure_time ASC
+              LIMIT 300

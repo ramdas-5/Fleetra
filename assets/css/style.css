@@ -1797,6 +1797,155 @@ img.avatar {
 .bus-card__seats { display: flex; flex-direction: column; gap: 6px; }
 
 /* ------------------------------------------------------------------
+   Search & Available buses (modules/search)
+   ------------------------------------------------------------------ */
+.search-tabs {
+    background: var(--fl-muted-soft);
+    border: 1px solid var(--fl-border);
+    border-radius: 999px;
+    display: inline-flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    padding: 4px;
+}
+.search-tabs__tab {
+    align-items: center;
+    border-radius: 999px;
+    color: var(--fl-text-muted);
+    display: inline-flex;
+    font-size: 14px;
+    font-weight: 600;
+    gap: 8px;
+    padding: 9px 18px;
+    text-decoration: none;
+    transition: var(--fl-transition);
+}
+.search-tabs__tab:hover { color: var(--fl-primary); }
+.search-tabs__tab.is-active {
+    background: var(--fl-card);
+    box-shadow: var(--fl-shadow-xs);
+    color: var(--fl-primary);
+}
+
+.empty-state__quick {
+    align-items: center;
+    border-top: 1px solid var(--fl-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 4px;
+    padding: 16px 18px 20px;
+}
+.empty-state__quick-label {
+    color: var(--fl-text-soft);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    margin-right: 4px;
+    text-transform: uppercase;
+}
+.quick-chip {
+    align-items: center;
+    background: var(--fl-primary-soft);
+    border: 1px solid var(--fl-primary-border);
+    border-radius: 999px;
+    color: var(--fl-primary);
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 600;
+    gap: 3px;
+    padding: 6px 13px;
+    text-decoration: none;
+    transition: var(--fl-transition);
+}
+.quick-chip:hover,
+.quick-chip.is-active {
+    background: var(--fl-primary);
+    border-color: var(--fl-primary);
+    color: #fff;
+}
+
+/* Terminal picker */
+.terminal-panel { padding: 22px; }
+.search-panel__hint { color: var(--fl-text-muted); font-size: 13.5px; margin: -6px 0 16px; }
+.terminal-panel__row {
+    align-items: end;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: minmax(0, 1fr) 190px auto;
+}
+.terminal-panel__field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.terminal-panel__quick {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+/* Bus card additions */
+.bus-card__tags { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; }
+.bus-card--demo { border-left-style: dashed; border-left-color: var(--fl-info); }
+
+/* Departure board (Available buses) */
+.departure-board { display: flex; flex-direction: column; gap: 10px; }
+.departure {
+    align-items: center;
+    background: var(--fl-card);
+    border: 1px solid var(--fl-border);
+    border-left: 3px solid var(--fl-success);
+    border-radius: var(--fl-radius);
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 92px minmax(0, 1fr) auto;
+    padding: 14px 16px;
+    transition: box-shadow var(--fl-transition), border-color var(--fl-transition);
+}
+.departure:hover { box-shadow: var(--fl-shadow-sm); }
+.departure--demo { border-left-style: dashed; border-left-color: var(--fl-info); }
+.departure--departed { border-left-color: var(--fl-text-soft); opacity: .72; }
+.departure-board--muted .departure { background: var(--fl-muted-soft); }
+
+.departure__time { display: flex; flex-direction: column; gap: 1px; }
+.departure__clock {
+    font-size: 19px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: -.01em;
+}
+.departure__date { color: var(--fl-text-soft); font-size: 11.5px; }
+
+.departure__main { min-width: 0; }
+.departure__route {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 15px;
+    font-weight: 600;
+    gap: 8px;
+}
+.departure__route .bi { color: var(--fl-text-soft); font-size: 13px; }
+.departure__from { color: var(--fl-text); }
+.departure__to { color: var(--fl-primary); }
+.departure__meta {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 8px;
+}
+
+.departure__aside {
+    align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    text-align: right;
+}
+.departure__eta { color: var(--fl-text-muted); font-size: 12px; font-weight: 600; }
+
+/* ------------------------------------------------------------------
    Premium polish — restrained depth, clear focus, no flashiness
    ------------------------------------------------------------------ */
 .btn-primary { box-shadow: 0 1px 2px rgba(79, 70, 229, .22); }

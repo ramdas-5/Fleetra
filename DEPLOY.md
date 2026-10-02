@@ -81,6 +81,9 @@ incident-location map, which is not affected.
 1. In vPanel open **phpMyAdmin**.
 2. Select your database in the left sidebar.
 3. Go to the **Import** tab → **Choose File** → `database/fleetra_db.sql` → **Import**.
+4. Import the India bus catalogue the same way: **Import** →
+   `database/excel_bus_catalog.sql` → **Import**. It adds the terminals, cities, routes and
+   operators from the workbook and is safe to import more than once.
 
 > The SQL file starts with `CREATE DATABASE IF NOT EXISTS fleetra_db; USE fleetra_db;`.
 > That is harmless here: phpMyAdmin imports into the database you selected, and the
@@ -213,9 +216,17 @@ From your own machine, pointing at the remote database:
 
 ```bash
 mysql -h your-db-host -P your-db-port -u your-db-user -p your-db-name < database/fleetra_db.sql
+mysql -h your-db-host -P your-db-port -u your-db-user -p your-db-name < database/excel_bus_catalog.sql
 ```
 
-Or paste `database/fleetra_db.sql` into your provider's MySQL console.
+Or paste `database/fleetra_db.sql` and then `database/excel_bus_catalog.sql` into your provider's
+MySQL console.
+
+**Upgrading an existing database?** Run the one-off migration instead of re-importing:
+
+```bash
+mysql -h your-db-host -P your-db-port -u your-db-user -p your-db-name < database/migrations/2026-10-02_bus_catalog.sql
+```
 
 ### C5. Let the platform pick the port
 

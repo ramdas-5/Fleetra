@@ -43,6 +43,8 @@ USE fleetra_db;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS data_import_runs;
+DROP TABLE IF EXISTS bus_operators;
 DROP TABLE IF EXISTS activity_logs;
 DROP TABLE IF EXISTS incidents;
 DROP TABLE IF EXISTS notifications;
@@ -139,6 +141,10 @@ CREATE TABLE drivers (
 
 -- =====================================================================
 -- 4. routes — service routes between a source and a destination
+--
+--    The catalog_* columns carry reference data imported from the India
+--    bus workbook (tools/import_excel.php). They are all nullable, so a
+--    route created by hand in the admin module is unaffected.
 -- =====================================================================
 CREATE TABLE routes (
     id                 INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -150,12 +156,67 @@ CREATE TABLE routes (
     estimated_duration SMALLINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Minutes',
     base_fare          DECIMAL(8,2) NOT NULL DEFAULT 0.00,
     status             ENUM('active','inactive') NOT NULL DEFAULT 'active',
+    -- Imported catalog metadata (see tools/import_excel.php)
+    operator_name            VARCHAR(160) DEFAULT NULL COMMENT 'Operating state transport undertaking / operator',
+    route_type               VARCHAR(40)  DEFAULT NULL COMMENT 'Intrastate | Interstate | City',
+    service_type             VARCHAR(60)  DEFAULT NULL COMMENT 'State Transport, Express, ...',
+    origin_terminal_ref      VARCHAR(48)  DEFAULT NULL COMMENT 'Workbook terminal id for the boarding terminal',
+    destination_terminal_ref VARCHAR(48)  DEFAULT NULL COMMENT 'Workbook terminal id for the arrival terminal',
+    origin_city              VARCHAR(120) DEFAULT NULL,
+    destination_city         VARCHAR(120) DEFAULT NULL,
+    external_ref             VARCHAR(48)  DEFAULT NULL COMMENT 'Stable id from the source workbook (dedupe key)',
+    data_source              VARCHAR(16)  NOT NULL DEFAULT 'manual' COMMENT 'manual | excel',
     created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_routes_code (route_code),
+    -- Multiple NULLs are allowed, so hand-made routes are unaffected.
+    UNIQUE KEY uq_routes_external_ref (external_ref),
     KEY idx_routes_status (status),
-    KEY idx_routes_source_destination (source, destination)
+    KEY idx_routes_source_destination (source, destination),
+    KEY idx_routes_origin_city (origin_city),
+    KEY idx_routes_destination_city (destination_city),
+    KEY idx_routes_data_source (data_source)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================================
+-- 4b. bus_operators — operators imported from the India bus workbook
+-- =====================================================================
+CREATE TABLE bus_operators (
+    id                  INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    operator_code       VARCHAR(24)  NOT NULL COMMENT 'Short code from the workbook, e.g. WBTC',
+    operator_name       VARCHAR(160) NOT NULL,
+    operator_type       VARCHAR(60)  DEFAULT NULL COMMENT 'State Transport, Private, ...',
+    state               VARCHAR(120) DEFAULT NULL,
+    headquarters        VARCHAR(120) DEFAULT NULL,
+    website             VARCHAR(200) DEFAULT NULL,
+    source_url          VARCHAR(255) DEFAULT NULL,
+    verification_status VARCHAR(40)  NOT NULL DEFAULT 'Needs Verification',
+    notes               VARCHAR(500) DEFAULT NULL,
+    created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_bus_operators_code (operator_code),
+    UNIQUE KEY uq_bus_operators_name (operator_name),
+    KEY idx_bus_operators_state (state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================================
+-- 4c. data_import_runs — audit log of every Excel/catalog import
+-- =====================================================================
+CREATE TABLE data_import_runs (
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    source_file     VARCHAR(255) NOT NULL,
+    source_label    VARCHAR(60)  DEFAULT NULL COMMENT 'php importer | committed sql import',
+    terminals_found INT UNSIGNED NOT NULL DEFAULT 0,
+    cities_found    INT UNSIGNED NOT NULL DEFAULT 0,
+    operators_found INT UNSIGNED NOT NULL DEFAULT 0,
+    routes_found    INT UNSIGNED NOT NULL DEFAULT 0,
+    stops_found     INT UNSIGNED NOT NULL DEFAULT 0,
+    summary         VARCHAR(500) DEFAULT NULL,
+    imported_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_import_runs_date (imported_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================================

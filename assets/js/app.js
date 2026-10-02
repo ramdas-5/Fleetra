@@ -817,6 +817,33 @@
     }
 
     /* --------------------------------------------------------------
+       Available buses: submit the terminal form as soon as a terminal is
+       chosen from the suggestion list. Manual typing + Enter still works
+       because the form is a normal GET form.
+       Markup: <form id="terminalForm"> ... <input name="terminal"> ...
+       -------------------------------------------------------------- */
+    function initTerminalQuickSubmit() {
+        var form = document.getElementById('terminalForm');
+
+        if (!form) {
+            return;
+        }
+
+        var input = form.querySelector('input[name="terminal"]');
+
+        if (!input) {
+            return;
+        }
+
+        input.addEventListener('change', function () {
+            // Only auto-submit once a real value is present.
+            if (input.value.trim().length >= 2) {
+                form.submit();
+            }
+        });
+    }
+
+    /* --------------------------------------------------------------
        Bootstrap
        -------------------------------------------------------------- */
     document.addEventListener('DOMContentLoaded', function () {
@@ -832,6 +859,7 @@
         initPrintButtons();
         initLocationAutocomplete();
         initLocationSwap();
+        initTerminalQuickSubmit();
     });
 
     window.Fleetra = {

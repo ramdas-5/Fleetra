@@ -108,9 +108,10 @@ function fleetra_navigation(): array
                     'label'    => 'Search Buses',
                     'icon'     => 'bi-search',
                     'href'     => 'modules/search/index.php',
-                    // Passenger booking journey — never shown to staff, whose
-                    // booking work happens in Manage Bookings instead.
-                    'roles'        => ['passenger'],
+                    // Passenger booking journey. Shown to passengers and to
+                    // administrators (who need it to review the catalogue);
+                    // other staff do their booking work in Manage Bookings.
+                    'roles'        => ['passenger', 'admin'],
                     'capabilities' => ['trips.search'],
                 ],
                 [

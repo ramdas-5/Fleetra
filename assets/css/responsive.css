@@ -93,6 +93,15 @@
     .search-panel__swap { align-self: center; transform: rotate(90deg); }
     .search-panel__submit, .search-panel__row--options .btn { width: 100%; }
 
+    .search-tabs { display: flex; width: 100%; }
+    .search-tabs__tab { flex: 1 1 auto; justify-content: center; }
+
+    .terminal-panel { padding: 16px; }
+    .terminal-panel__row { grid-template-columns: minmax(0, 1fr); }
+
+    .departure { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .departure__aside { align-items: flex-start; flex-direction: row; flex-wrap: wrap; text-align: left; }
+
     .bus-card,
     .service-card { grid-template-columns: minmax(0, 1fr); }
     .bus-card__aside,
