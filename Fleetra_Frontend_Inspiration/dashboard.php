@@ -1,0 +1,16 @@
+<?php $pageTitle='Dashboard'; $pageSubtitle='Your city journey at a glance.'; include 'includes/layout-start.php'; ?>
+
+<section class="card hero-journey mb">
+ <div class="copy"><span class="mini-label text-green">Good morning, Ananya</span><h2>Where would you like to go?</h2><p>Plan a comfortable, greener journey across Kolkata.</p>
+ <div class="route-search"><div class="field"><label>From</label><input value="Kolkata Central"></div><div class="swap">⇄</div><div class="field"><label>To</label><input value="Salt Lake"></div><a class="btn" href="journey-planner.php"><?= icon('search',15) ?> Find buses</a></div></div>
+ <div class="hero-bus"><img src="assets/images/bus-front.png" alt="Fleetra bus"></div>
+</section>
+<div class="grid grid-3 mb">
+ <section class="card pad" style="grid-column:span 2"><div class="section-head"><div><h2>What are you planning?</h2><p>Quick actions for your day.</p></div></div><div class="grid grid-3"><a class="mini-card" href="journey-planner.php" style="text-decoration:none;color:inherit"><div class="stat-icon green"><?= icon('route') ?></div><h4>Plan a journey</h4><span class="muted">Routes, buses & timings</span></a><a class="mini-card" href="bookings.php" style="text-decoration:none;color:inherit"><div class="stat-icon blue"><?= icon('ticket') ?></div><h4>My bookings</h4><span class="muted">Tickets and history</span></a><a class="mini-card" href="live-operations.php" style="text-decoration:none;color:inherit"><div class="stat-icon amber"><?= icon('map') ?></div><h4>Track my bus</h4><span class="muted">Live location & ETA</span></a></div></section>
+ <section class="card pad"><div class="section-head"><div><h2>Search Bus</h2><p>By route or vehicle ID</p></div></div><div class="search-box"><span><?= icon('search',15) ?></span><input placeholder="e.g. R-12 or FL-204"></div><div class="route-row mt"><span class="route-num">R-12</span><div><strong>Kolkata Central</strong><small>Salt Lake · 32 min</small></div><?= badge('On time') ?></div></section>
+</div>
+<div class="grid grid-3">
+ <section class="card pad" style="grid-column:span 2"><div class="section-head"><div><h2>Recent journeys</h2><p>Your latest transit activity.</p></div><a class="btn secondary small" href="bookings.php">View all</a></div><div class="route-row"><span class="route-num">R-12</span><div><strong>Kolkata Central → Salt Lake</strong><small>Today · 07:40 AM · FL-204</small></div><?= badge('Completed') ?></div><div class="route-row"><span class="route-num">R-18</span><div><strong>Howrah → New Town</strong><small>28 Sep · 05:15 PM · FL-187</small></div><?= badge('Completed') ?></div><div class="route-row"><span class="route-num">R-07</span><div><strong>Esplanade → Airport</strong><small>24 Sep · 09:20 AM · FL-092</small></div><?= badge('Completed') ?></div></section>
+ <section class="card pad"><div class="section-head"><div><h2>Quick alerts</h2><p>Live service updates.</p></div></div><div class="incident-card med"><strong>R-08 minor delay</strong><p class="muted">Approx. 8 min due to traffic.</p></div><div class="incident-card"><strong>R-12 running normally</strong><p class="muted">No disruption reported.</p></div></section>
+</div>
+<?php include 'includes/layout-end.php'; ?>

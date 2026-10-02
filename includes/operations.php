@@ -93,6 +93,84 @@ function time_range_label(?string $departure, ?string $arrival): string
 }
 
 /* ------------------------------------------------------------------
+ | Fare variation
+ |
+ | A route carries one base fare, but no two departures are really
+ | worth the same money: an AC sleeper overnight service costs more than
+ | a non-AC seater at midday. Every screen derives the price of a
+ | departure from this one function so the search card, the seat picker
+ | and the issued ticket always agree.
+ ------------------------------------------------------------------ */
+
+/** How much a bus type adds to (or takes off) the base fare. */
+function fare_bus_type_factor(string $busType): float
+{
+    return match (strtolower($busType)) {
+        'mini'         => 0.75,
+        'seater'       => 1.00,
+        'semi_sleeper' => 1.15,
+        'ac_seater'    => 1.30,
+        'sleeper'      => 1.45,
+        'ac_sleeper'   => 1.60,
+        default        => 1.00,
+    };
+}
+
+/** Peak/overnight adjustment for a departure time. */
+function fare_time_factor(string $departureTime): float
+{
+    $minutes = time_to_minutes($departureTime);
+
+    if ($minutes < 0) {
+        return 1.0;
+    }
+
+    if ($minutes < 7 * 60) {
+        return 0.95; // pre-dawn services are cheaper
+    }
+
+    if ($minutes >= 22 * 60) {
+        return 0.90; // the last bus of the day is discounted
+    }
+
+    if (($minutes >= 8 * 60 && $minutes < 11 * 60) || ($minutes >= 17 * 60 && $minutes < 21 * 60)) {
+        return 1.05; // morning and evening peak
+    }
+
+    return 1.0;
+}
+
+/** A stable +/- 4% so two identical bus types at the same time still differ. */
+function fare_service_adjustment(string $busType, string $departureTime): float
+{
+    $seed = abs(crc32('fare|' . strtolower($busType) . '|' . substr($departureTime, 0, 5))) % 100;
+
+    return 0.96 + ($seed / 100) * 0.08; // 0.96 – 1.04
+}
+
+/**
+ * The full-route fare of one departure, varied by bus type and time and
+ * rounded to a sensible ticket amount.
+ *
+ * @param float  $baseFare      The route's base (end-to-end) fare.
+ * @param string $busType       seater | ac_sleeper | mini | ...
+ * @param string $departureTime HH:MM(:SS) the bus leaves.
+ */
+function fleetra_fare_for(float $baseFare, string $busType, string $departureTime): float
+{
+    if ($baseFare <= 0) {
+        return 0.0;
+    }
+
+    $fare = $baseFare
+        * fare_bus_type_factor($busType)
+        * fare_time_factor($departureTime)
+        * fare_service_adjustment($busType, $departureTime);
+
+    return max(10.0, round($fare / 10) * 10);
+}
+
+/* ------------------------------------------------------------------
  | Conflict detection
  ------------------------------------------------------------------ */
 

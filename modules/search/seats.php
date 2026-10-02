@@ -112,9 +112,17 @@ if ($boardingStop !== null && $destinationStop !== null
     $destinationStop = $stops[count($stops) - 1];
 }
 
+// The price of this departure, not the route: it varies by seat type and
+// time of day, exactly as the search card advertised.
+$scheduleFare = fleetra_fare_for(
+    (float) $service['base_fare'],
+    (string) $service['bus_type'],
+    (string) $service['departure_time']
+);
+
 $journey = resolve_journey(
     (int) $service['route_id'],
-    (float) $service['base_fare'],
+    $scheduleFare,
     $boardingStop !== null ? (int) $boardingStop['id'] : null,
     $destinationStop !== null ? (int) $destinationStop['id'] : null,
     (int) $service['estimated_duration']

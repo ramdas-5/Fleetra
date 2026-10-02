@@ -421,9 +421,15 @@ function bus_catalog_demo_service(string $origin, string $destination, string $d
     $duration  = bus_catalog_estimate_duration($distance);
     $capacity  = 32 + ($seed % 23);           // 32–54 seats
     $seatsLeft = max(4, $capacity - ($seed % 17));
-    $fare      = $hint !== null && (float) $hint['base_fare'] > 0
+    $busType   = bus_catalog_demo_bus_type($key);
+
+    // The workbook/route base fare stays on the route; the price shown and
+    // sold for this specific bus is derived from it so two services on the
+    // same route are never exactly the same money.
+    $baseFare  = $hint !== null && (float) $hint['base_fare'] > 0
         ? (float) $hint['base_fare']
         : bus_catalog_estimate_fare($distance);
+    $fare      = fleetra_fare_for($baseFare, $busType, $time);
 
     $operators = bus_catalog_operator_pool();
     $operator  = (string) ($hint['operator_name'] ?? '') ?: $operators[$seed % count($operators)];
@@ -443,12 +449,13 @@ function bus_catalog_demo_service(string $origin, string $destination, string $d
         'departure_ts'       => $departureTs,
         'arrival_ts'         => $arrivalTs,
         'bus_number'         => sprintf('DM-%04d', 1000 + ($seed % 8999)),
-        'bus_type'           => bus_catalog_demo_bus_type($key),
+        'bus_type'           => $busType,
         'operator'           => $operator,
         'capacity'           => $capacity,
         'seats_left'         => $seatsLeft,
         'distance'           => round($distance, 1),
         'duration_minutes'   => $duration,
+        'base_fare'          => round($baseFare, 2),
         'fare'               => $fare,
         'route_code'         => (string) ($hint['route_code'] ?? ('DEMO-' . strtoupper(substr($originToken, 0, 3) . '-' . substr($destToken, 0, 3)))),
         'route_name'         => (string) ($hint['route_name'] ?? ($origin . ' to ' . $destination)),
@@ -640,9 +647,16 @@ function bus_catalog_real_services(array $options): array
             'seats_left'        => $seatsLeft,
             'distance'          => (float) $row['distance'],
             'duration_minutes'  => time_range_duration((string) $row['departure_time'], (string) $row['arrival_time']),
-            'fare'              => (float) $row['base_fare'],
+            // Priced per departure, not per route, so buses with different
+            // seat types and departure times do not all cost the same.
+            'fare'              => fleetra_fare_for(
+                (float) $row['base_fare'],
+                (string) $row['bus_type'],
+                (string) $row['departure_time']
+            ),
             'route_code'        => (string) $row['route_code'],
             'route_name'        => (string) $row['route_name'],
+            'base_fare'         => (float) $row['base_fare'],
             'is_demo'           => false,
             'schedule_id'       => (int) $row['id'],
             'route_id'          => (int) $row['route_id'],

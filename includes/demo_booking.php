@@ -155,7 +155,9 @@ function fleetra_demo_create_route(string $origin, string $destination, array $s
         'destination'        => $destination,
         'distance'           => (float) $service['distance'],
         'estimated_duration' => (int) $service['duration_minutes'],
-        'base_fare'          => round((float) $service['fare'], 2),
+        // Store the un-varied base fare: the per-bus price is derived from
+        // it at display and booking time, so it must not be baked in twice.
+        'base_fare'          => round((float) $service['base_fare'], 2),
         'status'             => 'active',
     ];
 

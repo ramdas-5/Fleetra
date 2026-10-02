@@ -1,0 +1,1 @@
+</main></div></div><div id="toast" class="toast">Action completed</div><script src="assets/js/app.js"></script></body></html>

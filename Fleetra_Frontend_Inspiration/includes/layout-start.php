@@ -1,0 +1,2 @@
+<?php require_once __DIR__.'/functions.php'; ?>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?= htmlspecialchars($pageTitle??'Fleetra') ?> · Fleetra</title><link rel="stylesheet" href="assets/css/style.css"></head><body><div class="app-shell"><?php include __DIR__.'/sidebar.php'; ?><div class="main-shell"><?php include __DIR__.'/header.php'; ?><main class="page-content">

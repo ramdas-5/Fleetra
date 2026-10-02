@@ -271,6 +271,16 @@ a demo ticket is a real ticket with a real booking and QR code. Imported catalog
 also given real schedules up front by `includes/schedule_seeder.php` (above), so on repeat
 searches demo services shrink to only the times a real timetable does not cover.
 
+### Per-bus pricing
+No two departures on a route cost exactly the same. `fleetra_fare_for()`
+(`includes/operations.php`) derives the price of a single departure from the route's base fare
+by multiplying in a **bus-type factor** (mini 0.75 → seater 1.00 → semi-sleeper 1.15 → AC seater
+1.30 → sleeper 1.45 → AC sleeper 1.60), a **time-of-day factor** (pre-dawn −5%, peak +5%, last
+bus −10%) and a stable ±4% jitter, rounded to a sensible ticket amount. The search card, the
+seat picker and the issued ticket all call the same function, so the price a passenger sees is
+the price they are charged — while a route with one base fare now shows a realistic spread
+(for example ₹510 / ₹550 / ₹570 / ₹670 for the same journey).
+
 ### Public landing page
 `index.php` renders a marketing page for guests and redirects signed-in users to their role
 dashboard. It includes a sticky nav, a hero with a **working search form** that submits to the

@@ -40,7 +40,7 @@ $service = db_one(
     'SELECT s.id, s.schedule_date, s.departure_time, s.arrival_time, s.status,
             r.id AS route_id, r.route_code, r.route_name, r.source, r.destination,
             r.base_fare, r.estimated_duration, r.status AS route_status,
-            b.id AS bus_id, b.bus_number, b.capacity, b.status AS bus_status
+            b.id AS bus_id, b.bus_number, b.bus_type, b.capacity, b.status AS bus_status
        FROM schedules s
        JOIN routes r ON r.id = s.route_id
        JOIN buses b  ON b.id = s.bus_id
@@ -117,9 +117,17 @@ $seatQuery = static fn (array $list): string => http_build_query([
 $boardingId    = post_int('boarding_stop_id');
 $destinationId = post_int('destination_stop_id');
 
+// Price this departure the same way the seat picker did (bus type + time),
+// so the amount charged matches what the passenger was shown.
+$scheduleFare = fleetra_fare_for(
+    (float) $service['base_fare'],
+    (string) $service['bus_type'],
+    (string) $service['departure_time']
+);
+
 $journey = resolve_journey(
     (int) $service['route_id'],
-    (float) $service['base_fare'],
+    $scheduleFare,
     $boardingId > 0 ? $boardingId : null,
     $destinationId > 0 ? $destinationId : null,
     (int) $service['estimated_duration']
