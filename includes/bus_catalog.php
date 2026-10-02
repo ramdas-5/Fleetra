@@ -275,39 +275,53 @@ function bus_catalog_route_hint(string $origin, string $destination): ?array
 function bus_catalog_destinations_for(string $terminal, int $limit = 8): array
 {
     $token = bus_catalog_place_token($terminal);
-    $found = [];
 
     if ($token === '') {
         return [];
     }
+
+    // Destinations that are served by a real (imported) route from this
+    // terminal always come first. Generic major cities only fill the gaps.
+    $routeFound = [];
 
     foreach (bus_catalog_known_routes() as $route) {
         $from = bus_catalog_place_token((string) ($route['origin_city'] ?? $route['source']));
         $to   = bus_catalog_place_token((string) ($route['destination_city'] ?? $route['destination']));
 
         if ($from !== '' && ($from === $token || str_contains($from, $token) || str_contains($token, $from))) {
-            $found[bus_catalog_place_token((string) $route['destination_city'])] = (string) $route['destination_city'];
+            $routeFound[$to] = (string) $route['destination_city'];
         } elseif ($to !== '' && ($to === $token || str_contains($to, $token) || str_contains($token, $to))) {
-            $found[bus_catalog_place_token((string) $route['origin_city'])] = (string) $route['origin_city'];
+            $routeFound[$from] = (string) $route['origin_city'];
         }
     }
 
-    unset($found[$token]);
+    unset($routeFound[$token], $routeFound['']);
 
+    $fallback = [];
     foreach (bus_catalog_major_cities() as $city) {
         $cityToken = bus_catalog_place_token($city);
-        if ($cityToken !== $token && !isset($found[$cityToken]) && !bus_catalog_matches($token, [$city])) {
-            $found[$cityToken] = $city;
+
+        if ($cityToken !== $token
+            && !isset($routeFound[$cityToken])
+            && !isset($fallback[$cityToken])
+            && !bus_catalog_matches($token, [$city])
+        ) {
+            $fallback[$cityToken] = $city;
         }
     }
 
-    // Deterministic order: nearest seed value first (stable, not random).
-    $cities = array_values($found);
-    usort($cities, static function (string $a, string $b) use ($token): int {
+    // Deterministic order within each group (stable between requests).
+    $sortBySeed = static function (string $a, string $b) use ($token): int {
         return bus_catalog_seed($token . '|' . $a) <=> bus_catalog_seed($token . '|' . $b);
-    });
+    };
 
-    return array_slice($cities, 0, max(1, $limit));
+    $routeCities = array_values($routeFound);
+    usort($routeCities, $sortBySeed);
+
+    $fallbackCities = array_values($fallback);
+    usort($fallbackCities, $sortBySeed);
+
+    return array_slice(array_merge($routeCities, $fallbackCities), 0, max(1, $limit));
 }
 
 /* ------------------------------------------------------------------
