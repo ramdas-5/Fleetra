@@ -132,3 +132,5 @@
 [2026-10-02 13:58:08] [INFO] Materialised demo service Barasat -> Basirhat on 2026-10-04 08:45:00 as schedule #29
 [2026-10-02 14:16:55] [WARNING] Failed login attempt for "driver@fleetra.com" from 127.0.0.1
 [2026-10-02 14:28:31] [INFO] Auto-scheduled 5 bookable departure(s) for imported routes.
+[2026-10-02 14:45:34] [INFO] Materialised demo service Kolkata -> Mala on 2026-10-02 15:15:00 as schedule #35
+[2026-10-02 15:13:56] [INFO] Auto-scheduled 14588 bookable departure(s) for imported routes.

@@ -150,21 +150,20 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 
 <header class="lp-nav" id="landingNav">
     <div class="lp-container lp-nav__inner">
-        <a class="lp-nav__brand" href="<?= e(url('index.php')) ?>">
-            <span class="brand__mark" aria-hidden="true">FL</span>
-            <span class="lp-nav__brand-text">
-                <span class="lp-nav__brand-name"><?= e(FLEETRA_NAME) ?></span>
-                <span class="lp-nav__brand-tag"><?= e(FLEETRA_TAGLINE) ?></span>
-            </span>
+        <a class="lp-nav__brand" href="<?= e(url('index.php')) ?>"
+           aria-label="<?= e(FLEETRA_NAME) ?> — <?= e(FLEETRA_TAGLINE) ?>">
+            <img class="lp-nav__logo" src="<?= e(asset('images/logo.png')) ?>"
+                 alt="<?= e(FLEETRA_NAME) ?>" width="101" height="32" decoding="async">
         </a>
 
         <ul class="lp-nav__links" id="landingLinks">
             <li><a class="lp-nav__link" href="#features">Platform</a></li>
-            <li><a class="lp-nav__link" href="#routes">Routes</a></li>
-            <li><a class="lp-nav__link" href="#roles">Roles</a></li>
-            <?php if (FLEETRA_SHOW_DEMO_CREDENTIALS): ?>
-                <li><a class="lp-nav__link" href="#demo">Demo accounts</a></li>
+            <li><a class="lp-nav__link" href="#how">How it works</a></li>
+            <?php if ($popularRoutes !== []): ?>
+                <li><a class="lp-nav__link" href="#routes">Routes</a></li>
             <?php endif; ?>
+            <li><a class="lp-nav__link" href="#roles">Roles</a></li>
+            <li><a class="lp-nav__link" href="#faq">FAQ</a></li>
         </ul>
 
         <div class="lp-nav__actions">
@@ -230,6 +229,12 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
                 <p class="lp-hero__note">
                     Searching opens the live passenger booking flow — sign in with a passenger account to reserve a seat.
                 </p>
+
+                <ul class="lp-hero__trust">
+                    <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Five role dashboards</li>
+                    <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Seat-locking that cannot double-book</li>
+                    <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Works offline, no external services</li>
+                </ul>
             </div>
 
             <!-- Decorative interface preview (no data, purely illustrative). -->
@@ -342,7 +347,7 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 
             <div class="lp-grid-3">
                 <?php foreach ($features as $feature): ?>
-                    <article class="lp-card">
+                    <article class="lp-card lp-reveal">
                         <span class="lp-card__icon"><i class="bi <?= e($feature['icon']) ?>" aria-hidden="true"></i></span>
                         <h3 class="lp-card__title"><?= e($feature['title']) ?></h3>
                         <p class="lp-card__text"><?= e($feature['text']) ?></p>
@@ -374,7 +379,7 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 
                 <div class="lp-routes">
                     <?php foreach ($popularRoutes as $route): ?>
-                        <article class="lp-route">
+                        <article class="lp-route lp-reveal">
                             <div class="lp-route__visual">
                                 <span class="lp-route__code"><?= e($route['route_code']) ?></span>
                                 <i class="bi bi-bus-front" aria-hidden="true"></i>
@@ -412,6 +417,58 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
         </section>
     <?php endif; ?>
 
+    <!-- ========================= How it works ========================= -->
+    <section class="lp-section" id="how">
+        <div class="lp-container">
+            <div class="lp-section__head">
+                <p class="lp-eyebrow-dark">How booking works</p>
+                <h2 class="lp-title">From search to boarding in four steps</h2>
+                <p class="lp-text">
+                    A passenger never has to phone the depot. Finding a service, choosing a seat, paying and
+                    boarding all run through Fleetra — on any device.
+                </p>
+            </div>
+
+            <div class="lp-steps">
+                <article class="lp-step lp-reveal">
+                    <span class="lp-step__num">1</span>
+                    <h3 class="lp-step__title">Search a route</h3>
+                    <p class="lp-step__text">
+                        Enter a boarding point, destination and travel date. Fleetra lists every serviceable bus
+                        with live seat availability.
+                    </p>
+                </article>
+
+                <article class="lp-step lp-reveal">
+                    <span class="lp-step__num">2</span>
+                    <h3 class="lp-step__title">Pick a seat</h3>
+                    <p class="lp-step__text">
+                        Choose a seat on the live seat map. The seat is locked at the database level, so it can
+                        never be sold to two passengers.
+                    </p>
+                </article>
+
+                <article class="lp-step lp-reveal">
+                    <span class="lp-step__num">3</span>
+                    <h3 class="lp-step__title">Pay and get a ticket</h3>
+                    <p class="lp-step__text">
+                        Fares are pro-rated to the leg travelled. The confirmation issues a printable e-ticket
+                        with a scannable QR code.
+                    </p>
+                </article>
+
+                <article class="lp-step lp-reveal">
+                    <span class="lp-step__num">4</span>
+                    <h3 class="lp-step__title">Board with a scan</h3>
+                    <p class="lp-step__text">
+                        Staff validate the QR code at the gate. The ticket is marked used and the passenger count
+                        updates on the dispatch board.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <!-- ============================ Roles ============================ -->
     <section class="lp-section" id="roles">
         <div class="lp-container">
@@ -426,7 +483,7 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 
             <div class="lp-roles">
                 <?php foreach ($roles as [$icon, $name, $text]): ?>
-                    <article class="lp-role">
+                    <article class="lp-role lp-reveal">
                         <span class="lp-role__icon"><i class="bi <?= e($icon) ?>" aria-hidden="true"></i></span>
                         <h3 class="lp-role__name"><?= e($name) ?></h3>
                         <p class="lp-role__text"><?= e($text) ?></p>
@@ -464,6 +521,78 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
         </section>
     <?php endif; ?>
 
+    <!-- ============================= FAQ ============================= -->
+    <section class="lp-section" id="faq">
+        <div class="lp-container">
+            <div class="lp-section__head">
+                <p class="lp-eyebrow-dark">Common questions</p>
+                <h2 class="lp-title">Answers before you start</h2>
+                <p class="lp-text">
+                    Everything below reflects how Fleetra actually behaves — no marketing promises the code does
+                    not keep.
+                </p>
+            </div>
+
+            <div class="lp-faq">
+                <details>
+                    <summary>
+                        <span>Does booking a part journey cost the full route fare?</span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <p class="lp-faq__answer">
+                        No. Fares are pro-rated to the leg travelled, so boarding and alighting part-way is charged
+                        only for the distance covered, plus the configured base fare.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>
+                        <span>What stops two passengers taking the same seat?</span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <p class="lp-faq__answer">
+                        A seat is reserved with a unique constraint in the database, not just a hidden button. A
+                        second attempt on the same seat is rejected server-side, so an oversold coach is impossible.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>
+                        <span>Can a bus or driver be assigned to two trips at once?</span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <p class="lp-faq__answer">
+                        Never. Every departure is validated against real overlap rules and the vehicle's serviceable
+                        status before it is saved, so conflicting assignments cannot reach the schedule.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>
+                        <span>Who gets access to which screens?</span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <p class="lp-faq__answer">
+                        Fleetra has five roles — administrator, transport manager, dispatcher, driver and passenger.
+                        Access is enforced on the server for every page and action, so editing a URL never unlocks a
+                        screen a role should not see.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>
+                        <span>Does Fleetra need an internet connection or paid services?</span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <p class="lp-faq__answer">
+                        No. Vendor assets such as fonts and icons are served locally, so the whole console runs on a
+                        normal PHP and MySQL host — including a laptop running XAMPP with no connection at all.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
+
     <!-- ============================= CTA ============================= -->
     <section class="lp-section">
         <div class="lp-container">
@@ -489,17 +618,45 @@ $pageTitle = FLEETRA_NAME . ' · ' . FLEETRA_TAGLINE;
 
 <footer class="lp-footer">
     <div class="lp-container lp-footer__inner">
-        <span>
-            &copy; <?= date('Y') ?> <?= e(FLEETRA_NAME) ?> &middot; <?= e(FLEETRA_TAGLINE) ?>
-            &middot; v<?= e(FLEETRA_VERSION) ?>
-        </span>
+        <div class="lp-footer__brand">
+            <img class="lp-footer__logo" src="<?= e(asset('images/logo.png')) ?>"
+                 alt="<?= e(FLEETRA_NAME) ?>" width="95" height="30" decoding="async">
+            <p>
+                <?= e(FLEETRA_TAGLINE) ?> — fleet, drivers, schedules, bookings, maintenance and reporting
+                brought together in one console.
+            </p>
+        </div>
 
-        <nav class="lp-footer__links" aria-label="Footer">
-            <a href="#features">Platform</a>
-            <a href="#roles">Roles</a>
-            <a href="<?= e(url('login.php')) ?>">Sign in</a>
-            <a href="<?= e(url('register.php')) ?>">Register</a>
+        <nav class="lp-footer__nav" aria-label="Footer">
+            <div class="lp-footer__col">
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how">How it works</a></li>
+                    <li><a href="#roles">Roles</a></li>
+                    <?php if ($popularRoutes !== []): ?>
+                        <li><a href="#routes">Routes</a></li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+
+            <div class="lp-footer__col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#faq">FAQ</a></li>
+                    <?php if (FLEETRA_SHOW_DEMO_CREDENTIALS): ?>
+                        <li><a href="#demo">Demo accounts</a></li>
+                    <?php endif; ?>
+                    <li><a href="<?= e(url('login.php')) ?>">Sign in</a></li>
+                    <li><a href="<?= e(url('register.php')) ?>">Create account</a></li>
+                </ul>
+            </div>
         </nav>
+    </div>
+
+    <div class="lp-container lp-footer__bottom">
+        <span>&copy; <?= date('Y') ?> <?= e(FLEETRA_NAME) ?> &middot; <?= e(FLEETRA_TAGLINE) ?></span>
+        <span>Version <?= e(FLEETRA_VERSION) ?> &middot; Local demonstration build</span>
     </div>
 </footer>
 
@@ -550,6 +707,27 @@ document.addEventListener('DOMContentLoaded', function () {
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
+
+    /* Reveal cards as they scroll into view. The hidden state is only applied
+       once this runs, so the page stays readable with scripts disabled. */
+    var revealItems = document.querySelectorAll('.lp-reveal');
+
+    if (revealItems.length && 'IntersectionObserver' in window) {
+        document.documentElement.classList.add('lp-reveal-ready');
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.1 });
+
+        revealItems.forEach(function (item) {
+            observer.observe(item);
+        });
+    }
 });
 </script>
 

@@ -159,36 +159,156 @@ function bus_catalog_routes_have_catalog_columns(): bool
     return $has;
 }
 
-/** Operating agencies used for generated services (real ones come from the DB). */
-function bus_catalog_operator_pool(): array
+/**
+ * Neutral operators used only when a route's region cannot be resolved.
+ * They deliberately carry no place name, so a generated service can never
+ * advertise a corporation from an unrelated part of the country.
+ *
+ * @return array<int, string>
+ */
+function bus_catalog_neutral_operators(): array
 {
-    static $pool = null;
+    return [
+        'Fleetra Intercity Express',
+        'National Travels',
+        'CityLink Roadways',
+        'State Road Transport Corporation',
+    ];
+}
 
-    if ($pool !== null) {
-        return $pool;
+/**
+ * Every operator in the catalogue alongside the state it belongs to, so a
+ * generated service can be attributed to the right region of the country.
+ *
+ * @return array<int, array{name:string, state:string}>
+ */
+function bus_catalog_operator_directory(): array
+{
+    static $directory = null;
+
+    if ($directory !== null) {
+        return $directory;
     }
 
-    $pool = [];
+    $directory = [];
 
     if (bus_catalog_table_exists('bus_operators')) {
-        foreach (db_all('SELECT operator_name FROM bus_operators ORDER BY operator_name LIMIT 60') as $row) {
-            $name = trim((string) ($row['operator_name'] ?? ''));
-            if ($name !== '') {
-                $pool[] = $name;
+        try {
+            foreach (db_all('SELECT operator_name, state FROM bus_operators ORDER BY operator_name LIMIT 200') as $row) {
+                $name = trim((string) ($row['operator_name'] ?? ''));
+
+                if ($name === '') {
+                    continue;
+                }
+
+                $directory[] = [
+                    'name'  => $name,
+                    'state' => trim((string) ($row['state'] ?? '')),
+                ];
+            }
+        } catch (Throwable $exception) {
+            $directory = [];
+        }
+    }
+
+    return $directory;
+}
+
+/**
+ * The state a place belongs to, resolved from the imported locations
+ * table. Both city names and terminal names are indexed, so "Kolkata",
+ * "Howrah" and "Esplanade Bus Terminus" all resolve to West Bengal.
+ */
+function bus_catalog_place_state(string $place): ?string
+{
+    static $map = null;
+
+    if ($map === null) {
+        $map = [];
+
+        if (bus_catalog_table_exists('locations')) {
+            try {
+                $rows = db_all('SELECT city, name, state FROM locations WHERE state <> "" LIMIT 4000');
+            } catch (Throwable $exception) {
+                $rows = [];
+            }
+
+            foreach ($rows as $row) {
+                $state = trim((string) ($row['state'] ?? ''));
+
+                if ($state === '') {
+                    continue;
+                }
+
+                foreach ([(string) ($row['city'] ?? ''), (string) ($row['name'] ?? '')] as $candidate) {
+                    $token = bus_catalog_place_token($candidate);
+
+                    if ($token !== '' && !isset($map[$token])) {
+                        $map[$token] = $state;
+                    }
+                }
             }
         }
     }
 
-    if ($pool === []) {
-        $pool = [
-            'State Road Transport Corporation',
-            'Fleetra Intercity Express',
-            'National Travels',
-            'CityLink Roadways',
-        ];
+    $token = bus_catalog_place_token($place);
+
+    return $token !== '' ? ($map[$token] ?? null) : null;
+}
+
+/**
+ * Operating agencies that make sense for a route, chosen by region instead
+ * of at random.
+ *
+ * Operators based in the origin state come first; operators based in the
+ * destination state are then added so an interstate service can still be
+ * run by either side of the route. When the region cannot be resolved the
+ * neutral fallback is used — a West Bengal service is never shown as
+ * "Delhi Transport Corporation".
+ *
+ * @return array<int, string>
+ */
+function bus_catalog_operators_for_route(string $origin, string $destination): array
+{
+    static $cache = [];
+
+    $cacheKey = bus_catalog_place_token($origin) . '|' . bus_catalog_place_token($destination);
+
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
     }
 
-    return $pool;
+    $originState      = bus_catalog_place_state($origin);
+    $destinationState = bus_catalog_place_state($destination);
+
+    $originPool      = [];
+    $destinationPool = [];
+
+    if ($originState !== null || $destinationState !== null) {
+        foreach (bus_catalog_operator_directory() as $operator) {
+            $state = $operator['state'];
+
+            if ($state === '') {
+                continue;
+            }
+
+            if ($originState !== null && $state === $originState) {
+                $originPool[] = $operator['name'];
+            } elseif ($destinationState !== null && $state === $destinationState) {
+                $destinationPool[] = $operator['name'];
+            }
+        }
+    }
+
+    $operators = array_values(array_unique(array_merge($originPool, $destinationPool)));
+
+    if ($operators === []) {
+        $operators = bus_catalog_neutral_operators();
+    }
+
+    $cache[$cacheKey] = $operators;
+
+    return $operators;
 }
 
 /** A major-city fallback list so every terminal has somewhere to go. */
@@ -224,6 +344,9 @@ function bus_catalog_known_routes(): array
     $dataSource = $catalog ? 'data_source' : "'manual'";
 
     try {
+        // A demo-materialised route only exists to hold a booking. An
+        // unbooked leftover must never seed suggestions or hints, otherwise
+        // it keeps resurfacing as an odd one-off destination.
         $routes = db_all(
             'SELECT id, route_code, route_name, source, destination, distance, base_fare,
                     ' . $operator . ' AS operator_name,
@@ -233,8 +356,13 @@ function bus_catalog_known_routes(): array
                     ' . $dataSource . ' AS data_source
                FROM routes
               WHERE status = "active"
+                AND (' . $dataSource . ' <> "demo" OR EXISTS (
+                        SELECT 1 FROM schedules sx
+                          JOIN bookings bx ON bx.schedule_id = sx.id
+                         WHERE sx.route_id = routes.id
+                    ))
               ORDER BY route_code
-              LIMIT 500'
+              LIMIT 3000'
         );
     } catch (Throwable $exception) {
         $routes = [];
@@ -431,8 +559,17 @@ function bus_catalog_demo_service(string $origin, string $destination, string $d
         : bus_catalog_estimate_fare($distance);
     $fare      = fleetra_fare_for($baseFare, $busType, $time);
 
-    $operators = bus_catalog_operator_pool();
-    $operator  = (string) ($hint['operator_name'] ?? '') ?: $operators[$seed % count($operators)];
+    // Attribute the service to a corporation from the route's own region so
+    // a West Bengal route is never operated by a Delhi or Gujarat operator.
+    // A hint operator is only trusted when it comes from the imported
+    // catalogue: a demo-materialised route may still carry the random
+    // operator that was chosen before this rule existed.
+    $operators    = bus_catalog_operators_for_route($origin, $destination);
+    $hintOperator = (string) ($hint['operator_name'] ?? '');
+    $hintTrusted  = $hint !== null && (string) ($hint['data_source'] ?? '') !== 'demo';
+    $operator     = ($hintTrusted && $hintOperator !== '')
+        ? $hintOperator
+        : $operators[$seed % count($operators)];
 
     $departureTs = strtotime($date . ' ' . $time) ?: null;
     $arrivalTs   = $departureTs !== null ? $departureTs + ($duration * 60) : null;
@@ -551,6 +688,29 @@ function bus_catalog_real_services(array $options): array
     $operatorName = $catalog ? 'r.operator_name' : 'NULL';
     $dataSource   = $catalog ? 'r.data_source' : "'manual'";
 
+    $fromToken     = isset($options['from']) ? bus_catalog_place_token((string) $options['from']) : '';
+    $toToken       = isset($options['to']) ? bus_catalog_place_token((string) $options['to']) : '';
+    $terminalToken = isset($options['terminal']) ? bus_catalog_place_token((string) $options['terminal']) : '';
+
+    // Narrow the search in SQL before the LIMIT is applied. The catalogue
+    // can hold thousands of routes, so filtering only in PHP after a capped
+    // fetch would silently drop a passenger's route once the data grew.
+    $matchSql = '';
+    $params   = [$dateFrom, $dateTo];
+
+    if ($fromToken !== '' || $terminalToken !== '') {
+        $token     = $fromToken !== '' ? $fromToken : $terminalToken;
+        $like      = '%' . $token . '%';
+        $matchSql .= ' AND (' . $originCity . ' LIKE ? OR r.source LIKE ? OR r.route_name LIKE ?)';
+        array_push($params, $like, $like, $like);
+    }
+
+    if ($toToken !== '') {
+        $like      = '%' . $toToken . '%';
+        $matchSql .= ' AND (' . $destCity . ' LIKE ? OR r.destination LIKE ? OR r.route_name LIKE ?)';
+        array_push($params, $like, $like, $like);
+    }
+
     try {
         $rows = db_all(
             'SELECT s.id, s.schedule_date, s.departure_time, s.arrival_time, s.status AS schedule_status,
@@ -574,19 +734,19 @@ function bus_catalog_real_services(array $options): array
               WHERE r.status = "active"
                 AND s.status <> "cancelled"
                 AND s.schedule_date BETWEEN ? AND ?
+                AND (' . $dataSource . ' <> "demo" OR EXISTS (
+                        SELECT 1 FROM bookings bx2 WHERE bx2.schedule_id = s.id
+                    ))
+                ' . $matchSql . '
               ORDER BY s.schedule_date ASC, s.departure_time ASC
               LIMIT ' . $limit,
-            [$dateFrom, $dateTo]
+            $params
         );
     } catch (Throwable $exception) {
         fleetra_log('Bus catalog real query failed: ' . $exception->getMessage(), 'WARNING');
 
         return [];
     }
-
-    $fromToken     = isset($options['from']) ? bus_catalog_place_token((string) $options['from']) : '';
-    $toToken       = isset($options['to']) ? bus_catalog_place_token((string) $options['to']) : '';
-    $terminalToken = isset($options['terminal']) ? bus_catalog_place_token((string) $options['terminal']) : '';
 
     $services = [];
 
@@ -626,6 +786,25 @@ function bus_catalog_real_services(array $options): array
 
         $capacity  = (int) $row['capacity'];
         $seatsLeft = max(0, $capacity - (int) $row['seats_taken']);
+        $rowSource = trim((string) ($row['data_source'] ?? '')) !== '' ? (string) $row['data_source'] : 'manual';
+        $operator  = trim((string) ($row['operator_name'] ?? ''));
+
+        if ($rowSource === 'demo') {
+            // A demo-materialised departure may still carry the random
+            // operator chosen before region matching existed. Re-attribute
+            // it to its own region rather than displaying a wrong agency.
+            $regionOps = bus_catalog_operators_for_route($origin, $destination);
+            $operator  = $regionOps[bus_catalog_seed(
+                bus_catalog_place_token($origin) . '|' . bus_catalog_place_token($destination)
+                . '|' . substr((string) $row['departure_time'], 0, 5)
+            ) % count($regionOps)];
+        }
+
+        if ($operator === '') {
+            $operator = trim((string) ($row['manufacturer'] ?? '')) !== ''
+                ? (string) $row['manufacturer']
+                : 'Fleetra';
+        }
 
         $services[] = [
             'key'               => 'real:' . (int) $row['id'],
@@ -640,9 +819,7 @@ function bus_catalog_real_services(array $options): array
             'arrival_ts'        => $arrivalTs,
             'bus_number'        => (string) $row['bus_number'],
             'bus_type'          => (string) $row['bus_type'],
-            'operator'          => trim((string) ($row['operator_name'] ?? '')) !== ''
-                ? (string) $row['operator_name']
-                : (trim((string) ($row['manufacturer'] ?? '')) !== '' ? (string) $row['manufacturer'] : 'Fleetra'),
+            'operator'          => $operator,
             'capacity'          => $capacity,
             'seats_left'        => $seatsLeft,
             'distance'          => (float) $row['distance'],
@@ -664,7 +841,7 @@ function bus_catalog_real_services(array $options): array
             'stop_count'        => (int) $row['stop_count'],
             'schedule_status'   => (string) $row['schedule_status'],
             'bus_status'        => (string) $row['bus_status'],
-            'data_source'       => trim((string) ($row['data_source'] ?? '')) !== '' ? (string) $row['data_source'] : 'manual',
+            'data_source'       => $rowSource,
         ];
     }
 

@@ -301,6 +301,18 @@ code, kbd, pre {
     width: 34px;
 }
 
+/* Brand logo image (assets/images/logo.png). The artwork is a dark green
+   wordmark, so the same file is reused everywhere: as-is on light
+   surfaces, and as a white silhouette on the dark sidebar / hero. */
+.brand__logo {
+    display: block;
+    height: 32px;
+    max-width: 100%;
+    width: auto;
+}
+
+.brand__logo--light { filter: brightness(0) invert(1); }
+
 .brand__text { display: flex; flex-direction: column; min-width: 0; }
 .brand__name { color: #fff; font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.2; }
 .brand__tagline { color: var(--fl-sidebar-text); font-size: 10.5px; letter-spacing: .02em; line-height: 1.3; white-space: nowrap; }
@@ -457,6 +469,13 @@ body.sidebar-collapsed .nav-soon,
 body.sidebar-collapsed .nav-badge,
 body.sidebar-collapsed .sidebar-user__text { display: none; }
 body.sidebar-collapsed .sidebar__brand { justify-content: center; padding: 18px 8px; }
+/* Collapsed rail: show only the icon half of the wordmark. */
+body.sidebar-collapsed .brand__logo {
+    height: 34px;
+    object-fit: cover;
+    object-position: left center;
+    width: 30px;
+}
 body.sidebar-collapsed .sidebar__collapse { display: none; }
 body.sidebar-collapsed .nav-link { justify-content: center; padding: 10px 0; }
 body.sidebar-collapsed .sidebar-user { justify-content: center; padding: 9px 6px; }
@@ -1141,9 +1160,7 @@ img.avatar {
 
 .auth-aside__inner { position: relative; z-index: 1; }
 .auth-aside__brand { align-items: center; display: flex; gap: 11px; }
-.auth-aside__brand .brand__mark { height: 38px; width: 38px; }
-.auth-aside__brand-name { color: #fff; font-size: 18px; font-weight: 600; }
-.auth-aside__brand-tag { color: #A9C9BC; font-size: 11.5px; }
+.auth-aside__logo { height: 38px; width: auto; }
 
 .auth-aside__body { max-width: 430px; margin-top: 52px; }
 .auth-aside__title { color: #fff; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; font-size: 30px; font-weight: 500; letter-spacing: -.01em; line-height: 1.2; }

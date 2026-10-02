@@ -18,12 +18,9 @@ $dashboardHref  = url(dashboard_path(current_role()));
 ?>
 <aside class="sidebar" id="appSidebar" aria-label="Main navigation">
     <div class="sidebar__brand">
-        <a class="brand" href="<?= e($dashboardHref) ?>">
-            <span class="brand__mark" aria-hidden="true">FL</span>
-            <span class="brand__text">
-                <span class="brand__name"><?= e(FLEETRA_NAME) ?></span>
-                <span class="brand__tagline"><?= e(FLEETRA_TAGLINE) ?></span>
-            </span>
+        <a class="brand" href="<?= e($dashboardHref) ?>" aria-label="<?= e(FLEETRA_NAME) ?> — <?= e(FLEETRA_TAGLINE) ?>">
+            <img class="brand__logo brand__logo--light" src="<?= e(asset('images/logo.png')) ?>"
+                 alt="<?= e(FLEETRA_NAME) ?>" width="101" height="32" decoding="async">
         </a>
         <button type="button" class="sidebar__collapse" id="sidebarCollapse"
                 aria-label="Collapse sidebar" title="Collapse sidebar">

@@ -53,12 +53,10 @@ $authFeatures = [
 <div class="auth-page">
     <aside class="auth-aside">
         <div class="auth-aside__inner">
-            <a class="auth-aside__brand" href="<?= e(url('index.php')) ?>">
-                <span class="brand__mark" aria-hidden="true">FL</span>
-                <span>
-                    <span class="auth-aside__brand-name d-block"><?= e(FLEETRA_NAME) ?></span>
-                    <span class="auth-aside__brand-tag"><?= e(FLEETRA_TAGLINE) ?></span>
-                </span>
+            <a class="auth-aside__brand" href="<?= e(url('index.php')) ?>"
+               aria-label="<?= e(FLEETRA_NAME) ?> — <?= e(FLEETRA_TAGLINE) ?>">
+                <img class="brand__logo brand__logo--light auth-aside__logo" src="<?= e(asset('images/logo.png')) ?>"
+                     alt="<?= e(FLEETRA_NAME) ?>" width="120" height="38" decoding="async">
             </a>
 
             <div class="auth-aside__body">

@@ -34,6 +34,9 @@
     body.sidebar-collapsed .nav-group__label,
     body.sidebar-collapsed .nav-link__text,
     body.sidebar-collapsed .sidebar-user__text { display: flex; }
+
+    /* The off-canvas drawer always shows the full wordmark. */
+    body.sidebar-collapsed .brand__logo { height: 32px; object-fit: contain; width: auto; }
     body.sidebar-collapsed .nav-soon,
     body.sidebar-collapsed .nav-badge,
     body.sidebar-collapsed .sidebar-user__logout { display: inline-flex; }

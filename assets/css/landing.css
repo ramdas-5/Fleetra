@@ -46,11 +46,17 @@
     text-decoration: none;
 }
 
-.lp-nav__brand .brand__mark { background: var(--fl-primary); }
+/* The wordmark is dark green; it is shown white over the hero and swaps
+   to its natural colour once the navigation turns solid on scroll. */
+.lp-nav__logo {
+    display: block;
+    filter: brightness(0) invert(1);
+    height: 32px;
+    transition: filter .18s ease;
+    width: auto;
+}
 
-.lp-nav__brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.lp-nav__brand-name { font-size: 15px; font-weight: 600; letter-spacing: .01em; }
-.lp-nav__brand-tag { color: rgba(214, 236, 225, .6); font-size: 11px; }
+.lp-nav.is-scrolled .lp-nav__logo { filter: none; }
 
 .lp-nav__links {
     align-items: center;
@@ -84,7 +90,6 @@
 .lp-nav.is-scrolled .lp-nav__brand,
 .lp-nav.is-scrolled .lp-nav__link { color: var(--fl-text); }
 .lp-nav.is-scrolled .lp-nav__link:hover { color: var(--fl-primary); }
-.lp-nav.is-scrolled .lp-nav__brand-tag { color: var(--fl-text-soft); }
 .lp-nav.is-scrolled .lp-btn--ghost { color: var(--fl-text); border-color: var(--fl-border-strong); }
 
 .lp-nav__toggle {
@@ -206,6 +211,27 @@
     font-size: 12.5px;
     margin-top: 16px;
 }
+
+/* Small proof points directly under the search widget. */
+.lp-hero__trust {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    list-style: none;
+    margin: 22px 0 0;
+    padding: 0;
+}
+
+.lp-hero__trust li {
+    align-items: center;
+    color: rgba(214, 236, 225, .84);
+    display: flex;
+    font-size: 13px;
+    gap: 8px;
+}
+
+.lp-hero__trust i { color: #A7E345; font-size: 14px; }
 
 /* Booking-style search widget -------------------------------------- */
 .lp-search {
@@ -405,6 +431,9 @@
    Sections
    ------------------------------------------------------------------ */
 .lp-section { padding: 84px 0; }
+
+/* Keep in-page anchors clear of the fixed navigation bar. */
+#features, #how, #routes, #roles, #demo, #faq { scroll-margin-top: 84px; }
 .lp-section--soft { background: var(--fl-bg); border-bottom: 1px solid var(--fl-border); border-top: 1px solid var(--fl-border); }
 
 .lp-section__head { margin: 0 auto 44px; max-width: 660px; text-align: center; }
@@ -607,20 +636,152 @@
     border-top: 1px solid var(--fl-border);
     color: var(--fl-text-muted);
     font-size: 13px;
-    padding: 32px 0;
+    padding: 44px 0 32px;
 }
 
 .lp-footer__inner {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 32px;
     justify-content: space-between;
 }
 
-.lp-footer__links { display: flex; flex-wrap: wrap; gap: 20px; }
-.lp-footer__links a { color: var(--fl-text-muted); text-decoration: none; }
-.lp-footer__links a:hover { color: var(--fl-primary); }
+.lp-footer__brand { max-width: 320px; }
+.lp-footer__logo { display: block; height: 30px; width: auto; }
+.lp-footer__brand p { color: var(--fl-text-muted); font-size: 13px; line-height: 1.65; margin-top: 14px; }
+
+.lp-footer__nav { display: flex; flex-wrap: wrap; gap: 48px; }
+.lp-footer__col h4 {
+    color: var(--fl-text-soft);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    margin-bottom: 13px;
+    text-transform: uppercase;
+}
+.lp-footer__col ul { display: flex; flex-direction: column; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.lp-footer__col a { color: var(--fl-text-muted); font-size: 13.5px; text-decoration: none; }
+.lp-footer__col a:hover { color: var(--fl-primary); }
+
+.lp-footer__bottom {
+    border-top: 1px solid var(--fl-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 34px;
+    padding-top: 20px;
+    color: var(--fl-text-soft);
+    font-size: 12.5px;
+}
+
+/* ------------------------------------------------------------------
+   How it works (booking flow)
+   ------------------------------------------------------------------ */
+.lp-steps {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.lp-step {
+    background: var(--fl-card);
+    border: 1px solid var(--fl-border);
+    border-radius: var(--fl-radius);
+    padding: 22px;
+    position: relative;
+    transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.lp-step:hover {
+    border-color: var(--fl-primary-border);
+    box-shadow: 0 10px 28px rgba(9, 62, 45, .08);
+    transform: translateY(-2px);
+}
+
+.lp-step__num {
+    align-items: center;
+    background: var(--fl-primary-soft);
+    border-radius: 11px;
+    color: var(--fl-primary);
+    display: flex;
+    font-size: 15px;
+    font-weight: 700;
+    height: 40px;
+    justify-content: center;
+    margin-bottom: 15px;
+    width: 40px;
+}
+
+.lp-step__title { font-size: 15.5px; font-weight: 600; }
+.lp-step__text { color: var(--fl-text-muted); font-size: 13.5px; line-height: 1.65; margin-top: 7px; }
+
+/* ------------------------------------------------------------------
+   FAQ (native <details> so it works with no JavaScript)
+   ------------------------------------------------------------------ */
+.lp-faq {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0 auto;
+    max-width: 780px;
+}
+
+.lp-faq details {
+    background: var(--fl-card);
+    border: 1px solid var(--fl-border);
+    border-radius: var(--fl-radius-sm);
+    overflow: hidden;
+}
+
+.lp-faq details[open] {
+    border-color: var(--fl-primary-border);
+    box-shadow: var(--fl-shadow-xs);
+}
+
+.lp-faq summary {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    font-size: 14.5px;
+    font-weight: 600;
+    gap: 12px;
+    justify-content: space-between;
+    list-style: none;
+    padding: 16px 18px;
+}
+
+.lp-faq summary::-webkit-details-marker { display: none; }
+.lp-faq summary i { color: var(--fl-primary); flex: 0 0 auto; transition: transform .18s ease; }
+.lp-faq details[open] summary i { transform: rotate(180deg); }
+
+.lp-faq__answer {
+    color: var(--fl-text-muted);
+    font-size: 13.5px;
+    line-height: 1.7;
+    padding: 0 18px 17px;
+}
+
+/* ------------------------------------------------------------------
+   Scroll reveal
+   ------------------------------------------------------------------ */
+/* Reveal is opt-in: elements are only hidden once JavaScript has confirmed
+   it can observe them, so the page is fully readable without scripting. */
+.lp-reveal { transition: opacity .55s ease, transform .55s ease; }
+
+html.lp-reveal-ready .lp-reveal { opacity: 0; transform: translateY(18px); }
+html.lp-reveal-ready .lp-reveal.is-visible { opacity: 1; transform: none; }
+
+/* Gentle stagger inside repeating grids. */
+.lp-grid-3 > .lp-reveal:nth-child(2),
+.lp-steps > .lp-reveal:nth-child(2) { transition-delay: .07s; }
+.lp-grid-3 > .lp-reveal:nth-child(3),
+.lp-steps > .lp-reveal:nth-child(3) { transition-delay: .14s; }
+.lp-grid-3 > .lp-reveal:nth-child(4),
+.lp-steps > .lp-reveal:nth-child(4) { transition-delay: .21s; }
+.lp-grid-3 > .lp-reveal:nth-child(5) { transition-delay: .14s; }
+.lp-grid-3 > .lp-reveal:nth-child(6) { transition-delay: .21s; }
 
 /* ------------------------------------------------------------------
    Responsive
@@ -630,6 +791,7 @@
     .lp-hero__inner { gap: 40px; grid-template-columns: minmax(0, 1fr); }
     .lp-roles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .lp-routes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lp-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 860px) {
@@ -671,13 +833,17 @@
     .lp-search__fields { grid-template-columns: minmax(0, 1fr); }
     .lp-hero { padding: 108px 0 62px; }
     .lp-hero__actions { flex-direction: column; align-items: stretch; }
-    .lp-grid-3, .lp-routes, .lp-roles { grid-template-columns: minmax(0, 1fr); }
+    .lp-grid-3, .lp-routes, .lp-roles, .lp-steps { grid-template-columns: minmax(0, 1fr); }
     .lp-mock__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lp-cta { padding: 40px 22px; }
     .lp-demo { padding: 20px; }
+    .lp-footer { padding: 34px 0 26px; }
+    .lp-footer__inner { flex-direction: column; gap: 26px; }
+    .lp-footer__nav { gap: 32px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .lp-card, .lp-btn { transition: none; }
+    .lp-card, .lp-btn, .lp-reveal { transition: none; }
     .lp-card:hover { transform: none; }
+    html.lp-reveal-ready .lp-reveal { opacity: 1; transform: none; }
 }
